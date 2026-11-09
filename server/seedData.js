@@ -1,0 +1,435 @@
+import Product from './models/Product.js';
+import User from './models/User.js';
+import bcrypt from 'bcryptjs';
+
+export const initialProducts = [
+  // --- AMP Zone ---
+  {
+    name: 'Sony WH-1000XM5 Wireless Noise-Cancelling Headphones',
+    description: 'Industry-leading noise cancellation with two processors and eight microphones. Exceptional sound quality with newly developed driver unit and crystal clear hands-free calling.',
+    price: 42000,
+    discountPrice: 37500,
+    category: 'AMP Zone',
+    stock: 25,
+    isFeatured: true,
+    rating: 4.9,
+    numReviews: 128,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'Apple AirPods Pro (2nd Generation) with MagSafe Case',
+    description: 'Up to 2x more Active Noise Cancellation, plus Adaptive Transparency and Personalized Spatial Audio with dynamic head tracking for immersive sound.',
+    price: 28500,
+    discountPrice: 24999,
+    category: 'AMP Zone',
+    stock: 45,
+    isFeatured: true,
+    rating: 4.8,
+    numReviews: 240,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'JBL Charge 5 Portable Waterproof Bluetooth Speaker',
+    description: 'Take the party with you no matter what the weather. Delivers bold JBL Original Pro Sound with an optimized long excursion driver, separate tweeter and dual pumping bass radiators.',
+    price: 18500,
+    discountPrice: 15999,
+    category: 'AMP Zone',
+    stock: 30,
+    isFeatured: false,
+    rating: 4.7,
+    numReviews: 85,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1545454675-3531b543be5d?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'Marshall Emberton II Compact Stereo Speaker',
+    description: 'Tough and resilient design, boasting an extremely durable IP67 dust- and water-resistance rating. 30+ hours of portable playtime on a single charge.',
+    price: 21500,
+    discountPrice: null,
+    category: 'AMP Zone',
+    stock: 18,
+    isFeatured: true,
+    rating: 4.9,
+    numReviews: 64,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'Bose QuietComfort 45 Bluetooth Headphones',
+    description: 'The perfect balance of quiet, comfort, and sound. Proprietary acoustic technology for deep, clear audio with adjustable EQ and 24-hour battery.',
+    price: 36000,
+    discountPrice: 31900,
+    category: 'AMP Zone',
+    stock: 20,
+    isFeatured: false,
+    rating: 4.8,
+    numReviews: 112,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'Nothing Ear (2) Hi-Res Audio Wireless Earbuds',
+    description: 'Ultra-light at just 4.5g. Powerful 11.6mm custom driver, 24bit Hi-Res audio certified, and next-level personal sound profiles.',
+    price: 15500,
+    discountPrice: 12900,
+    category: 'AMP Zone',
+    stock: 35,
+    isFeatured: true,
+    rating: 4.7,
+    numReviews: 89,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'SteelSeries Arctis Nova Pro Wireless Gaming Headset',
+    description: 'Almighty Audio with Nova Pro Acoustic System and premium High Fidelity Drivers enhanced with Sonar Software. Active Noise Cancellation with infinity power battery swap system.',
+    price: 39500,
+    discountPrice: null,
+    category: 'AMP Zone',
+    stock: 15,
+    isFeatured: false,
+    rating: 4.9,
+    numReviews: 76,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+
+  // --- Cable Core ---
+  {
+    name: 'Anker Prime 100W GaN Wall Charger (3-Port)',
+    description: 'Ultra-fast charging for laptops, tablets, and phones simultaneously. Powered by GaNPrime technology with ActiveShield 2.0 temperature monitoring.',
+    price: 8900,
+    discountPrice: 7200,
+    category: 'Cable Core',
+    stock: 50,
+    isFeatured: true,
+    rating: 4.9,
+    numReviews: 195,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'Kevlar Braided 240W USB-C to USB-C Cable (6.6ft)',
+    description: 'Heavy-duty aramid fiber core with dual aluminum shielding. Supports 240W Power Delivery and high-speed 40Gbps file transfer.',
+    price: 2800,
+    discountPrice: 2199,
+    category: 'Cable Core',
+    stock: 120,
+    isFeatured: true,
+    rating: 4.8,
+    numReviews: 310,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: '27,650mAh 250W Power Bank with Smart Digital Display',
+    description: 'Charges a 16-inch MacBook Pro to 50% in just 28 minutes. Features an intuitive digital app and real-time power display.',
+    price: 18900,
+    discountPrice: 15500,
+    category: 'Cable Core',
+    stock: 35,
+    isFeatured: false,
+    rating: 4.9,
+    numReviews: 87,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'Satechi Aluminum 9-in-1 USB-C Multiport Adapter',
+    description: 'Includes 4K HDMI, Gigabit Ethernet, USB-C PD charging, SD/microSD card readers, and high-speed USB-A data ports.',
+    price: 11500,
+    discountPrice: 9400,
+    category: 'Cable Core',
+    stock: 40,
+    isFeatured: false,
+    rating: 4.7,
+    numReviews: 52,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'Belkin 3-in-1 MagSafe Wireless Charging Stand (15W Fast Charge)',
+    description: 'Charges your iPhone, Apple Watch, and AirPods simultaneously. Architecturally inspired premium stainless steel design.',
+    price: 16900,
+    discountPrice: 13999,
+    category: 'Cable Core',
+    stock: 40,
+    isFeatured: true,
+    rating: 4.9,
+    numReviews: 165,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'SanDisk Extreme 1TB Portable NVMe External SSD',
+    description: 'Up to 1050MB/s read and 1000MB/s write speeds in a rugged, water- and dust-resistant design (IP55). Perfect for creative workflows.',
+    price: 14800,
+    discountPrice: 11999,
+    category: 'Cable Core',
+    stock: 55,
+    isFeatured: true,
+    rating: 4.9,
+    numReviews: 230,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'CalDigit TS4 Thunderbolt 4 Dock (18 Ports)',
+    description: 'The pinnacle of connectivity: 98W laptop charging, dual 6K display support, 2.5 Gigabit Ethernet, and UHS-II card readers.',
+    price: 49500,
+    discountPrice: null,
+    category: 'Cable Core',
+    stock: 12,
+    isFeatured: false,
+    rating: 4.8,
+    numReviews: 45,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+
+  // --- Smart Hold ---
+  {
+    name: 'MagSafe Car Vent Mount Pro with Qi Wireless Charging',
+    description: 'Ultra-strong N52 neodymium magnets hold your iPhone rock steady over rough roads while delivering fast 15W wireless charging.',
+    price: 5500,
+    discountPrice: 4200,
+    category: 'Smart Hold',
+    stock: 65,
+    isFeatured: true,
+    rating: 4.8,
+    numReviews: 142,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1510519138195-068d828884bb?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'CNC Anodized Aluminum Desktop Stand for iPad & iPhone',
+    description: 'Dual-hinge 360-degree rotation with weighted anti-tipping base and rubberized silicone padding to protect your devices.',
+    price: 3800,
+    discountPrice: 2950,
+    category: 'Smart Hold',
+    stock: 80,
+    isFeatured: true,
+    rating: 4.9,
+    numReviews: 110,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1586775490184-b79f0621891f?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'DJI Osmo Mobile 6 Smartphone Gimbal Stabilizer',
+    description: '3-axis stabilization, built-in extension rod, Quick Launch, and ActiveTrack 5.0 for cinematic video capture on the go.',
+    price: 18500,
+    discountPrice: 15900,
+    category: 'Smart Hold',
+    stock: 22,
+    isFeatured: false,
+    rating: 4.8,
+    numReviews: 76,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'Elgato Stream Deck MK.2 (15 LCD Keys)',
+    description: '15 customizable LCD keys to control apps, tools, and platforms. Trigger single or multiple actions, post social tweets, adjust audio, and much more.',
+    price: 16800,
+    discountPrice: 14500,
+    category: 'Smart Hold',
+    stock: 30,
+    isFeatured: true,
+    rating: 4.9,
+    numReviews: 185,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'Keychron K2 Pro QMK/VIA Wireless Mechanical Keyboard',
+    description: 'Customizable mechanical keyboard with Hot-swappable Keychron K Pro switches, acoustic sound-absorbing foam, and wireless Bluetooth 5.1 connection.',
+    price: 12800,
+    discountPrice: 10800,
+    category: 'Smart Hold',
+    stock: 40,
+    isFeatured: true,
+    rating: 4.9,
+    numReviews: 215,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'Logitech MX Master 3S Ergonomic Wireless Mouse',
+    description: 'Quiet clicks and 8K DPI any-surface tracking. MagSpeed electromagnetic scrolling shifts from ratchet to hyper-fast scrolling with zero sound.',
+    price: 11900,
+    discountPrice: null,
+    category: 'Smart Hold',
+    stock: 50,
+    isFeatured: true,
+    rating: 4.9,
+    numReviews: 310,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'BenQ ScreenBar Monitor Light Bar with Auto-Dimming',
+    description: 'Space-saving monitor-mounted lamp with optical asymmetrical design that only illuminates the desk surface and eliminates screen glare.',
+    price: 13500,
+    discountPrice: 11200,
+    category: 'Smart Hold',
+    stock: 25,
+    isFeatured: false,
+    rating: 4.8,
+    numReviews: 92,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+
+  // --- Smart Shells ---
+  {
+    name: 'Nomad Horween Leather MagSafe Case for iPhone 15/16',
+    description: 'Rustic Horween leather from Chicago develops a rugged, unique patina over time. Equipped with an internal shock-absorbing air bumper.',
+    price: 7200,
+    discountPrice: 5800,
+    category: 'Smart Shells',
+    stock: 45,
+    isFeatured: true,
+    rating: 4.9,
+    numReviews: 180,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'UAG Monarch Rugged Kevlar Military-Grade Case',
+    description: '5-layer protection engineered with Dupont Kevlar. Certified to 2x Military drop-test standards (20ft drop protection).',
+    price: 7900,
+    discountPrice: 6500,
+    category: 'Smart Shells',
+    stock: 28,
+    isFeatured: false,
+    rating: 4.7,
+    numReviews: 63,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1580910051074-3eb694886505?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'Spigen EZ Fit 9H Tempered Glass Screen Protector (2-Pack)',
+    description: 'Includes auto-alignment installation tray for effortless 0-bubble application. Oleophobic coating resists fingerprints and smudges.',
+    price: 2200,
+    discountPrice: 1650,
+    category: 'Smart Shells',
+    stock: 150,
+    isFeatured: false,
+    rating: 4.9,
+    numReviews: 420,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'Bellroy Magnetic Laptop Sleeve with Water-Resistant Shell',
+    description: 'Slimline magnetic closure, padded microfiber lining, and recycled woven fabric finish. Designed for MacBook 13 to 16 inches.',
+    price: 9800,
+    discountPrice: 7900,
+    category: 'Smart Shells',
+    stock: 35,
+    isFeatured: true,
+    rating: 4.8,
+    numReviews: 95,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'Apple Leather Wallet with MagSafe & Find My Support',
+    description: 'Crafted from specially tanned European leather with built-in shielded magnets that securely snap into place on the back of your iPhone.',
+    price: 6500,
+    discountPrice: 5200,
+    category: 'Smart Shells',
+    stock: 60,
+    isFeatured: true,
+    rating: 4.8,
+    numReviews: 175,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1627123424574-724758594e93?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'Dbrand Damascus Carbon Fiber Skin Wrap for MacBook',
+    description: 'Precision 3M vinyl skin with zero residue adhesive. Guards against scratches, fingerprints, and daily scuffs while maintaining paper-thin profile.',
+    price: 3900,
+    discountPrice: null,
+    category: 'Smart Shells',
+    stock: 70,
+    isFeatured: false,
+    rating: 4.9,
+    numReviews: 130,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+  {
+    name: 'Pitaka MagEZ Aramid Carbon Fiber Case for iPad Pro',
+    description: 'Aerospace-grade 1500D aramid fiber case that is fully compatible with Apple Magic Keyboard and Apple Pencil wireless magnetic charging.',
+    price: 8800,
+    discountPrice: 6999,
+    category: 'Smart Shells',
+    stock: 30,
+    isFeatured: true,
+    rating: 4.9,
+    numReviews: 88,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=800&auto=format&fit=crop&q=80',
+    ],
+  },
+];
+
+export async function seedDatabase() {
+  try {
+    const productCount = await Product.countDocuments();
+    if (productCount === 0) {
+      console.log('🌱 Seeding sample products into database...');
+      await Product.insertMany(initialProducts);
+      console.log('✅ Initial products seeded successfully!');
+    }
+
+    const adminExists = await User.findOne({ email: 'admin@modotech.com' });
+    if (!adminExists) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash('admin123', salt);
+      await User.create({
+        name: 'ModoTech Admin',
+        email: 'admin@modotech.com',
+        password: hashedPassword,
+        role: 'admin',
+      });
+      console.log('👑 Admin user created: admin@modotech.com / password: admin123');
+    }
+  } catch (err) {
+    console.error('⚠️ Seeding error:', err.message);
+  }
+}
