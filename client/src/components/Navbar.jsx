@@ -1,0 +1,445 @@
+import { useState, useEffect, useRef } from 'react';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import {
+  FiSearch,
+  FiHeart,
+  FiShoppingCart,
+  FiUser,
+  FiMenu,
+  FiX,
+  FiLayout,
+  FiPackage,
+  FiSettings,
+  FiLogOut,
+  FiShield,
+  FiChevronDown,
+} from 'react-icons/fi';
+import { useCartStore } from '../store/cartStore';
+import { useAuthStore, isAdminEmail } from '../store/authStore';
+import { useWishlistStore } from '../store/wishlistStore';
+import NotificationBell from './NotificationBell';
+import { auth, signOut } from '../lib/firebase';
+import toast from 'react-hot-toast';
+
+const navLinks = [
+  { label: 'Home', to: '/' },
+  { label: 'Shop', to: '/shop' },
+  { label: 'Track Order', to: '/track-order' },
+];
+
+export default function Navbar({ transparent = false }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+
+  const dropdownRef = useRef(null);
+  const totalItems = useCartStore((s) => s.getTotalItems());
+  const openDrawer = useCartStore((s) => s.openDrawer);
+  const wishlistCount = useWishlistStore((s) => s.items.length);
+  const { isAuthenticated, user, logout } = useAuthStore();
+  const isAdmin = user?.role === 'admin' || isAdminEmail(user?.email);
+
+  // Scroll listener for transparent header effect
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Close dropdown on route change
+  useEffect(() => {
+    setUserDropdownOpen(false);
+    setMenuOpen(false);
+    setSearchOpen(false);
+  }, [location.pathname]);
+
+  // Click outside to close profile dropdown
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setUserDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Logout handler
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch {
+      // ignore
+    }
+    logout();
+    setUserDropdownOpen(false);
+    toast.success('Logged out successfully 👋', {
+      style: { borderRadius: '12px' },
+    });
+    navigate('/');
+  };
+
+  const navBg =
+    transparent && !scrolled
+      ? 'bg-transparent text-white'
+      : 'bg-white/95 backdrop-blur-md text-dark border-b border-gray-150 shadow-[0_4px_20px_rgba(0,0,0,0.03)]';
+
+  // Fallback default avatar generator
+  const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'U';
+  const hasAvatar = Boolean(user?.avatar);
+
+  return (
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${navBg}`}>
+      <div className="container-custom">
+        <div className="flex items-center justify-between h-16 md:h-20">
+          {/* Logo with Gadget Emblem */}
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <img
+              src="/logo.svg"
+              alt="ModoTech"
+              className="w-8 h-8 md:w-9 md:h-9 rounded-xl shadow-sm group-hover:scale-105 transition-transform"
+            />
+            <span className="text-2xl md:text-3xl font-black tracking-tight">
+              Modo<span className="text-primary group-hover:text-red-600 transition-colors">Tech</span>
+            </span>
+          </Link>
+
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-8">
+            {navLinks.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) =>
+                  `text-sm font-bold tracking-wide uppercase hover:text-primary transition-colors ${isActive ? 'text-primary' : ''
+                  }`
+                }
+                end={link.to === '/'}
+              >
+                {link.label}
+              </NavLink>
+            ))}
+          </nav>
+
+          {/* Action Icons */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Search Toggle */}
+            <button
+              onClick={() => setSearchOpen(!searchOpen)}
+              className="p-2 hover:text-primary transition-colors rounded-full hover:bg-black/5"
+              aria-label="Search"
+            >
+              <FiSearch size={20} />
+            </button>
+
+            {/* Notification Bell */}
+            <NotificationBell />
+
+            {/* Wishlist */}
+            <Link
+              to="/wishlist"
+              className="p-2 hover:text-primary transition-colors relative rounded-full hover:bg-black/5"
+              aria-label="Wishlist"
+            >
+              <FiHeart size={20} />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-white text-[11px] w-5 h-5 rounded-full flex items-center justify-center font-black shadow-sm">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
+
+            {/* Cart Button with Drawer Trigger */}
+            <button
+              onClick={openDrawer}
+              className="p-2 hover:text-primary transition-colors relative rounded-full hover:bg-black/5"
+              aria-label="Shopping Cart"
+              type="button"
+            >
+              <FiShoppingCart size={20} />
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-white text-[11px] w-5 h-5 rounded-full flex items-center justify-center font-black shadow-sm">
+                  {totalItems}
+                </span>
+              )}
+            </button>
+
+            {/* User Profile / Auth Area */}
+            {isAuthenticated && user ? (
+              <div className="relative" ref={dropdownRef}>
+                {/* Trigger Button with Avatar */}
+                <button
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className="flex items-center gap-2 p-1 pl-1.5 pr-2.5 rounded-full border border-gray-200/80 hover:border-primary/50 transition-all bg-white/10 hover:bg-black/5 text-dark"
+                  aria-expanded={userDropdownOpen}
+                >
+                  <div className="relative">
+                    {hasAvatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={user.name || 'User'}
+                        referrerPolicy="no-referrer"
+                        className="w-8 h-8 rounded-full object-cover ring-2 ring-primary/40 shadow-sm"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-rose-500 text-white font-black text-xs flex items-center justify-center shadow-md">
+                        {userInitial}
+                      </div>
+                    )}
+                    {/* Online status indicator dot */}
+                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full"></span>
+                  </div>
+
+                  <span className="text-xs font-bold hidden sm:inline-block max-w-[90px] truncate text-current">
+                    {user.name?.split(' ')[0] || 'Account'}
+                  </span>
+                  <FiChevronDown
+                    size={14}
+                    className={`transition-transform duration-200 opacity-60 ${userDropdownOpen ? 'rotate-180' : ''
+                      }`}
+                  />
+                </button>
+
+                {/* Luxury Dropdown Menu */}
+                {userDropdownOpen && (
+                  <div className="absolute right-0 mt-3 w-72 bg-white rounded-3xl shadow-2xl border border-gray-150 py-3 text-dark z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                    {/* Header: User Info */}
+                    <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-3">
+                      <div className="relative flex-shrink-0">
+                        {hasAvatar ? (
+                          <img
+                            src={user.avatar}
+                            alt={user.name}
+                            referrerPolicy="no-referrer"
+                            className="w-12 h-12 rounded-full object-cover ring-2 ring-primary/30"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-primary to-rose-500 text-white font-black text-lg flex items-center justify-center">
+                            {userInitial}
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <h4 className="font-black text-sm text-dark truncate">
+                            {user.name || 'Valued Customer'}
+                          </h4>
+                        </div>
+                        <p className="text-xs text-gray-400 truncate mb-1">{user.email}</p>
+                        <span
+                          className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full inline-block ${isAdmin
+                            ? 'bg-purple-100 text-purple-700'
+                            : 'bg-emerald-100 text-emerald-700'
+                            }`}
+                        >
+                          {isAdmin ? '🛡️ Admin' : '✨ Verified Member'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Navigation Items */}
+                    <div className="px-2 py-2 space-y-0.5 text-sm">
+                      {/* 1. Dashboard */}
+                      <Link
+                        to="/profile?tab=dashboard"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-gray-100/80 transition-colors group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-primary/10 text-gray-600 group-hover:text-primary flex items-center justify-center transition-colors">
+                          <FiLayout size={16} />
+                        </div>
+                        <div className="flex-1">
+                          <span className="font-bold text-dark block leading-snug">User Dashboard</span>
+                          <span className="text-[11px] text-gray-400 block">Orders, stats & activity</span>
+                        </div>
+                      </Link>
+
+                      {/* 2. My Orders */}
+                      <Link
+                        to="/profile?tab=orders"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-gray-100/80 transition-colors group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-primary/10 text-gray-600 group-hover:text-primary flex items-center justify-center transition-colors">
+                          <FiPackage size={16} />
+                        </div>
+                        <div className="flex-1">
+                          <span className="font-bold text-dark block leading-snug">My Orders</span>
+                          <span className="text-[11px] text-gray-400 block">Track packages & history</span>
+                        </div>
+                      </Link>
+
+                      {/* 3. Profile Settings */}
+                      <Link
+                        to="/profile?tab=settings"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-gray-100/80 transition-colors group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-primary/10 text-gray-600 group-hover:text-primary flex items-center justify-center transition-colors">
+                          <FiSettings size={16} />
+                        </div>
+                        <div className="flex-1">
+                          <span className="font-bold text-dark block leading-snug">Profile Settings</span>
+                          <span className="text-[11px] text-gray-400 block">Name, address & info</span>
+                        </div>
+                      </Link>
+
+                      {/* Admin Access Link if Admin */}
+                      {isAdmin && (
+                        <Link
+                          to="/admin/dashboard"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-purple-50/70 hover:bg-purple-100/80 text-purple-700 transition-colors group"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
+                            <FiShield size={16} />
+                          </div>
+                          <div className="flex-1">
+                            <span className="font-bold block leading-snug">Admin Control Center</span>
+                            <span className="text-[11px] text-purple-500 block">Manage store & inventory</span>
+                          </div>
+                        </Link>
+                      )}
+                    </div>
+
+                    {/* Footer: Logout */}
+                    <div className="border-t border-gray-100 px-2 pt-2">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-rose-600 hover:bg-rose-50 transition-colors text-sm font-bold text-left"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-rose-100/60 text-rose-600 flex items-center justify-center">
+                          <FiLogOut size={16} />
+                        </div>
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Non-authenticated login button */
+              <Link
+                to="/login"
+                className="btn-primary text-xs !px-4 !py-2.5 font-bold"
+                aria-label="Account Login"
+              >
+                <FiUser size={15} />
+                <span>Log In</span>
+              </Link>
+            )}
+
+            {/* Mobile Menu Toggle */}
+            <button
+              className="md:hidden p-2 rounded-full hover:bg-black/5"
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label="Toggle menu"
+            >
+              {menuOpen ? <FiX size={22} /> : <FiMenu size={22} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Search Expansion Dropdown */}
+        {searchOpen && (
+          <div className="pb-4 animate-in fade-in duration-200">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (searchQuery.trim()) {
+                  window.location.href = `/shop?search=${encodeURIComponent(searchQuery.trim())}`;
+                }
+              }}
+              className="relative max-w-xl mx-auto"
+            >
+              <input
+                type="text"
+                placeholder="Search gadgets, accessories, power banks..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+                className="w-full border border-gray-200 rounded-2xl py-3 px-5 pr-14 text-dark focus:outline-none focus:border-primary shadow-sm bg-white"
+              />
+              <button
+                type="submit"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-primary transition-colors"
+              >
+                <FiSearch size={18} />
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* Mobile Navigation Drawer */}
+        {menuOpen && (
+          <div className="md:hidden pb-6 pt-2 border-t border-gray-200/50 animate-in fade-in duration-200">
+            <nav className="flex flex-col gap-2">
+              {navLinks.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `px-4 py-2.5 rounded-xl text-sm font-bold uppercase transition-colors ${isActive ? 'bg-primary text-white' : 'hover:bg-black/5'
+                    }`
+                  }
+                  end={link.to === '/'}
+                >
+                  {link.label}
+                </NavLink>
+              ))}
+
+              {isAuthenticated && user && (
+                <div className="border-t border-gray-150 pt-3 mt-2 space-y-1">
+                  <Link
+                    to="/profile?tab=dashboard"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-black/5 text-sm font-bold"
+                  >
+                    <FiLayout size={16} /> User Dashboard
+                  </Link>
+                  <Link
+                    to="/profile?tab=orders"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-black/5 text-sm font-bold"
+                  >
+                    <FiPackage size={16} /> My Orders
+                  </Link>
+                  <Link
+                    to="/profile?tab=settings"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-black/5 text-sm font-bold"
+                  >
+                    <FiSettings size={16} /> Profile Settings
+                  </Link>
+                  {isAdmin && (
+                    <Link
+                      to="/admin/dashboard"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-purple-50 text-purple-700 text-sm font-bold"
+                    >
+                      <FiShield size={16} /> Admin Control Center
+                    </Link>
+                  )}
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-rose-600 hover:bg-rose-50 text-sm font-bold text-left"
+                  >
+                    <FiLogOut size={16} /> Sign Out
+                  </button>
+                </div>
+              )}
+            </nav>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}

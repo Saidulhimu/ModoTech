@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+
+  body {
+    @apply font-sans text-dark antialiased bg-white selection:bg-primary selection:text-white;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-white px-7 py-3 rounded-full font-bold tracking-wide hover:bg-red-700 transition-all duration-300 inline-flex items-center gap-2 shadow-md hover:shadow-lg active:scale-95;
+  }
+
+  .btn-outline {
+    @apply border-2 border-dark text-dark px-6 py-3 rounded-full font-bold tracking-wide hover:bg-dark hover:text-white transition-all duration-300 inline-flex items-center gap-2 active:scale-95 shadow-sm;
+  }
+
+  .btn-outline-white {
+    @apply border-2 border-white text-white px-6 py-3 rounded-full font-bold tracking-wide hover:bg-white hover:text-dark transition-all duration-300 inline-flex items-center gap-2 active:scale-95 backdrop-blur-sm shadow-md;
+  }
+
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-title {
+    @apply text-3xl sm:text-4xl md:text-5xl font-black text-dark tracking-tight mb-3;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+
+/* Print styles for Cash Memo / Invoice */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printable-content, .printable-content * {
+    visibility: visible;
+  }
+  .printable-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+    color: black !important;
+  }
+}
+
+
+/* Print styles for Cash Memo / Invoice */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printable-content, .printable-content * {
+    visibility: visible;
+  }
+  .printable-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+    color: black !important;
+  }
+}
