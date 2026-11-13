@@ -51,32 +51,70 @@ export const useCartStore = create(
 
       // Cart operations
       addToCart: (product, quantity = 1, openDrawerImmediately = true) => {
-        const existing = get().items.find((item) => item._id === product._id);
-        if (existing) {
-          set({
-            items: get().items.map((item) =>
-              item._id === product._id
-                ? { ...item, quantity: item.quantity + quantity }
-                : item
-            ),
-          });
+        if (!product) return;
+
+        const safePrice = Number(product.price) || 0;
+        const safeDiscount =
+          product.discountPrice !== null &&
+          product.discountPrice !== undefined &&
+          product.discountPrice !== ''
+            ? Number(product.discountPrice)
+            : null;
+
+        const safeImages =
+          Array.isArray(product.imageUrls) && product.imageUrls.length > 0 && product.imageUrls[0]
+            ? product.imageUrls
+            : product.imageUrl
+            ? [product.imageUrl]
+            : product.image
+            ? [product.image]
+            : ['https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800'];
+
+        const sanitized = {
+          ...product,
+          _id: String(product._id || `item_${Date.now()}`),
+          name: product.name || 'Tech Gadget',
+          price: safePrice,
+          discountPrice: safeDiscount,
+          imageUrls: safeImages,
+        };
+
+        const qty = Math.max(1, Number(quantity) || 1);
+        const currentItems = Array.isArray(get().items) ? get().items : [];
+        const existingIndex = currentItems.findIndex(
+          (item) => String(item._id) === String(sanitized._id)
+        );
+
+        if (existingIndex >= 0) {
+          const updatedItems = [...currentItems];
+          const prevQty = Number(updatedItems[existingIndex].quantity) || 1;
+          updatedItems[existingIndex] = {
+            ...updatedItems[existingIndex],
+            ...sanitized,
+            quantity: prevQty + qty,
+          };
+          set({ items: updatedItems });
         } else {
-          set({ items: [...get().items, { ...product, quantity }] });
+          set({ items: [...currentItems, { ...sanitized, quantity: qty }] });
         }
+
         if (openDrawerImmediately) {
           set({ isDrawerOpen: true });
         }
       },
 
       removeFromCart: (productId) => {
-        set({ items: get().items.filter((item) => item._id !== productId) });
+        const currentItems = Array.isArray(get().items) ? get().items : [];
+        set({ items: currentItems.filter((item) => String(item._id) !== String(productId)) });
       },
 
       updateQuantity: (productId, quantity) => {
-        if (quantity < 1) return;
+        const qty = Number(quantity);
+        if (isNaN(qty) || qty < 1) return;
+        const currentItems = Array.isArray(get().items) ? get().items : [];
         set({
-          items: get().items.map((item) =>
-            item._id === productId ? { ...item, quantity } : item
+          items: currentItems.map((item) =>
+            String(item._id) === String(productId) ? { ...item, quantity: qty } : item
           ),
         });
       },
@@ -121,20 +159,31 @@ export const useCartStore = create(
         set({ coupon: null });
       },
 
-      // Calculations
-      getTotalItems: () => get().items.reduce((acc, item) => acc + item.quantity, 0),
+      // Calculations (Strict numeric sanitation preventing NaN errors)
+      getTotalItems: () => {
+        const items = Array.isArray(get().items) ? get().items : [];
+        return items.reduce((acc, item) => acc + (Number(item?.quantity) || 1), 0);
+      },
 
-      getTotalPrice: () =>
-        get().items.reduce(
-          (acc, item) =>
-            acc + (item.discountPrice || item.price) * item.quantity,
-          0
-        ),
+      getTotalPrice: () => {
+        const items = Array.isArray(get().items) ? get().items : [];
+        return items.reduce((acc, item) => {
+          const rawPrice =
+            item?.discountPrice !== null &&
+            item?.discountPrice !== undefined &&
+            item?.discountPrice !== ''
+              ? Number(item.discountPrice)
+              : Number(item?.price);
+          const price = isNaN(rawPrice) ? 0 : rawPrice;
+          const qty = Number(item?.quantity) || 1;
+          return acc + price * qty;
+        }, 0);
+      },
 
       // Shipping calculation (Inside Dhaka: ৳60, Outside: ৳120; Free if total >= 2000 or FREESHIP coupon)
       getShippingFee: () => {
         const subtotal = get().getTotalPrice();
-        if (subtotal === 0) return 0;
+        if (subtotal <= 0) return 0;
         if (subtotal >= FREE_SHIPPING_THRESHOLD) return 0;
         if (get().coupon?.code === 'FREESHIP') return 0;
         return get().shippingArea === 'outside_dhaka' ? 120 : 60;
@@ -144,13 +193,13 @@ export const useCartStore = create(
       getDiscountAmount: () => {
         const subtotal = get().getTotalPrice();
         const coupon = get().coupon;
-        if (!coupon || subtotal === 0) return 0;
+        if (!coupon || subtotal <= 0) return 0;
 
         if (coupon.type === 'percentage') {
-          return Math.round((subtotal * coupon.value) / 100);
+          return Math.round((subtotal * (Number(coupon.value) || 0)) / 100);
         }
         if (coupon.type === 'fixed') {
-          return Math.min(coupon.value, subtotal);
+          return Math.min(Number(coupon.value) || 0, subtotal);
         }
         return 0; // free_shipping reduces shipping fee, not subtotal
       },
@@ -158,7 +207,7 @@ export const useCartStore = create(
       // Final Grand Total
       getFinalTotal: () => {
         const subtotal = get().getTotalPrice();
-        if (subtotal === 0) return 0;
+        if (subtotal <= 0) return 0;
         const discount = get().getDiscountAmount();
         const shipping = get().getShippingFee();
         return Math.max(0, subtotal - discount + shipping);

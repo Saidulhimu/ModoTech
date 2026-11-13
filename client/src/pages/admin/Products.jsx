@@ -26,7 +26,7 @@ export default function AdminProducts() {
   const handleDelete = async (id, name) => {
     if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
     try {
-      await api.delete(`/products/${id}`);
+      await productService.deleteProduct(id);
       toast.success('Product deleted!', { style: { borderRadius: '12px' } });
       setProducts((prev) => prev.filter((p) => p._id !== id));
     } catch {

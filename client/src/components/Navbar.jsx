@@ -109,13 +109,14 @@ export default function Navbar({ transparent = false }) {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-7">
             {navLinks.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) =>
-                  `text-sm font-bold tracking-wide uppercase hover:text-primary transition-colors ${isActive ? 'text-primary' : ''
+                  `text-sm font-bold tracking-wide uppercase hover:text-primary transition-colors ${
+                    isActive ? 'text-primary' : ''
                   }`
                 }
                 end={link.to === '/'}
@@ -123,6 +124,23 @@ export default function Navbar({ transparent = false }) {
                 {link.label}
               </NavLink>
             ))}
+
+            {/* Exclusive Admin Panel Tab in Navbar */}
+            {isAdmin && (
+              <NavLink
+                to="/admin/dashboard"
+                className={({ isActive }) =>
+                  `text-xs font-black tracking-wide uppercase px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 ${
+                    isActive
+                      ? 'bg-purple-600 text-white border-purple-600 shadow-sm shadow-purple-500/30'
+                      : 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100'
+                  }`
+                }
+              >
+                <span>👑</span>
+                <span>Admin Panel</span>
+              </NavLink>
+            )}
           </nav>
 
           {/* Action Icons */}
@@ -291,21 +309,51 @@ export default function Navbar({ transparent = false }) {
                         </div>
                       </Link>
 
-                      {/* Admin Access Link if Admin */}
+                      {/* Exclusive Admin Management Options */}
                       {isAdmin && (
-                        <Link
-                          to="/admin/dashboard"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-purple-50/70 hover:bg-purple-100/80 text-purple-700 transition-colors group"
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
-                            <FiShield size={16} />
-                          </div>
-                          <div className="flex-1">
-                            <span className="font-bold block leading-snug">Admin Control Center</span>
-                            <span className="text-[11px] text-purple-500 block">Manage store & inventory</span>
-                          </div>
-                        </Link>
+                        <div className="pt-2 mt-1 border-t border-purple-100 space-y-1">
+                          <Link
+                            to="/admin/dashboard"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-purple-50/80 hover:bg-purple-100 text-purple-800 transition-colors group"
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-purple-200/70 text-purple-800 flex items-center justify-center font-bold">
+                              👑
+                            </div>
+                            <div className="flex-1">
+                              <span className="font-bold text-xs block leading-snug">Admin Dashboard</span>
+                              <span className="text-[10px] text-purple-600 block">Analytics & Controls</span>
+                            </div>
+                          </Link>
+
+                          <Link
+                            to="/admin/products/add"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="flex items-center gap-3 px-3.5 py-2 rounded-xl hover:bg-emerald-50 text-emerald-800 transition-colors group"
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                              ➕
+                            </div>
+                            <div className="flex-1">
+                              <span className="font-bold text-xs block leading-snug">Add New Product</span>
+                              <span className="text-[10px] text-emerald-600 block">Create live gadget listing</span>
+                            </div>
+                          </Link>
+
+                          <Link
+                            to="/admin/orders"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="flex items-center gap-3 px-3.5 py-2 rounded-xl hover:bg-blue-50 text-blue-800 transition-colors group"
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                              📦
+                            </div>
+                            <div className="flex-1">
+                              <span className="font-bold text-xs block leading-snug">Manage Orders</span>
+                              <span className="text-[10px] text-blue-600 block">Accept & dispatch</span>
+                            </div>
+                          </Link>
+                        </div>
                       )}
                     </div>
 
@@ -387,7 +435,8 @@ export default function Navbar({ transparent = false }) {
                   to={link.to}
                   onClick={() => setMenuOpen(false)}
                   className={({ isActive }) =>
-                    `px-4 py-2.5 rounded-xl text-sm font-bold uppercase transition-colors ${isActive ? 'bg-primary text-white' : 'hover:bg-black/5'
+                    `px-4 py-2.5 rounded-xl text-sm font-bold uppercase transition-colors ${
+                      isActive ? 'bg-primary text-white' : 'hover:bg-black/5'
                     }`
                   }
                   end={link.to === '/'}
@@ -395,6 +444,20 @@ export default function Navbar({ transparent = false }) {
                   {link.label}
                 </NavLink>
               ))}
+
+              {isAdmin && (
+                <NavLink
+                  to="/admin/dashboard"
+                  onClick={() => setMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `px-4 py-2.5 rounded-xl text-sm font-black uppercase transition-colors flex items-center gap-2 ${
+                      isActive ? 'bg-purple-600 text-white' : 'bg-purple-50 text-purple-700'
+                    }`
+                  }
+                >
+                  <span>👑</span> Admin Panel
+                </NavLink>
+              )}
 
               {isAuthenticated && user && (
                 <div className="border-t border-gray-150 pt-3 mt-2 space-y-1">

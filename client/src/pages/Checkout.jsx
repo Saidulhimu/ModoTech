@@ -44,14 +44,27 @@ export default function Checkout() {
   const [couponInput, setCouponInput] = useState('');
   const [form, setForm] = useState({
     fullName: user?.name || '',
-    phone: '',
-    street: '',
-    city: 'Dhaka',
-    zip: '1212',
+    phone: user?.phone || '',
+    street: user?.addresses?.[0]?.street || '',
+    city: user?.addresses?.[0]?.city || 'Dhaka',
+    zip: user?.addresses?.[0]?.zip || '1212',
     state: 'Dhaka Division',
     country: 'Bangladesh',
     paymentMethod: 'Cash on Delivery',
   });
+
+  // Sync profile details if auth loads after checkout mounted
+  useEffect(() => {
+    if (user) {
+      setForm((prev) => ({
+        ...prev,
+        fullName: prev.fullName || user.name || '',
+        phone: prev.phone || user.phone || '',
+        street: prev.street || user.addresses?.[0]?.street || '',
+        city: prev.city || user.addresses?.[0]?.city || 'Dhaka',
+      }));
+    }
+  }, [user]);
 
   const subtotal = getTotalPrice();
   const totalItems = getTotalItems();
@@ -91,21 +104,44 @@ export default function Checkout() {
       return;
     }
 
+    if (!form.street.trim()) {
+      toast.error('Please enter your detailed delivery address');
+      return;
+    }
+
     setLoading(true);
     try {
+      const customerName = (form.fullName || user?.name || 'Valued Customer').trim();
+      const customerEmail = user?.email || 'customer@modotech.com';
+
       const orderPayload = {
-        orderItems: items.map((item) => ({
-          product: item._id,
-          name: item.name,
-          imageUrl: item.imageUrls?.[0],
-          price: item.discountPrice || item.price,
-          quantity: item.quantity,
-        })),
+        userId: user?._id || user?.uid || null,
+        userEmail: customerEmail,
+        customerName: customerName,
+        orderItems: items.map((item) => {
+          const itemPrice = Number(
+            item.discountPrice !== null && item.discountPrice !== undefined && item.discountPrice !== ''
+              ? item.discountPrice
+              : item.price
+          ) || 0;
+          const itemImage =
+            (Array.isArray(item.imageUrls) && item.imageUrls[0]) ||
+            item.imageUrl ||
+            item.image ||
+            'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400';
+          return {
+            product: item._id,
+            name: item.name || 'Tech Product',
+            imageUrl: itemImage,
+            price: itemPrice,
+            quantity: Number(item.quantity) || 1,
+          };
+        }),
         shippingAddress: {
-          fullName: form.fullName || user?.name || 'Valued Customer',
-          phone: form.phone,
-          street: form.street,
-          city: form.city,
+          fullName: customerName,
+          phone: form.phone.trim(),
+          street: form.street.trim(),
+          city: form.city.trim(),
           state: form.state,
           zip: form.zip,
           country: form.country,
@@ -129,8 +165,6 @@ export default function Checkout() {
       clearCart();
 
       const orderShortId = String(order._id || '').slice(-6).toUpperCase();
-      const customerName = form.fullName || user?.name || 'Customer';
-      const customerEmail = user?.email || 'customer@modotech.com';
 
       // 1. Notification for Customer (Step 1)
       useNotificationStore.getState().addNotification({
@@ -387,24 +421,36 @@ export default function Checkout() {
 
               {/* Items List */}
               <div className="space-y-3.5 max-h-60 overflow-y-auto pr-1">
-                {items.map((item) => (
-                  <div key={item._id} className="flex gap-3 items-center">
-                    <div className="w-14 h-14 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100 p-1 flex items-center justify-center">
-                      <img
-                        src={item.imageUrls?.[0] || 'https://via.placeholder.com/100'}
-                        alt={item.name}
-                        className="w-full h-full object-contain mix-blend-multiply"
-                      />
+                {items.map((item) => {
+                  const itemPrice = Number(
+                    item.discountPrice !== null && item.discountPrice !== undefined && item.discountPrice !== ''
+                      ? item.discountPrice
+                      : item.price
+                  ) || 0;
+                  const itemImage =
+                    (Array.isArray(item.imageUrls) && item.imageUrls[0]) ||
+                    item.imageUrl ||
+                    item.image ||
+                    'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400';
+                  return (
+                    <div key={item._id} className="flex gap-3 items-center">
+                      <div className="w-14 h-14 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100 p-1 flex items-center justify-center">
+                        <img
+                          src={itemImage}
+                          alt={item.name}
+                          className="w-full h-full object-contain mix-blend-multiply"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-dark line-clamp-1">{item.name}</p>
+                        <p className="text-[11px] text-gray-400">Qty: {item.quantity}</p>
+                      </div>
+                      <span className="font-bold text-xs sm:text-sm text-dark">
+                        {formatBDT(itemPrice * (Number(item.quantity) || 1))}
+                      </span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-dark line-clamp-1">{item.name}</p>
-                      <p className="text-[11px] text-gray-400">Qty: {item.quantity}</p>
-                    </div>
-                    <span className="font-bold text-xs sm:text-sm text-dark">
-                      {formatBDT((item.discountPrice || item.price) * item.quantity)}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Promo Code Box */}

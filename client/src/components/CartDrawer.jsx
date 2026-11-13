@@ -44,8 +44,11 @@ export default function CartDrawer() {
   const grandTotal = getFinalTotal();
 
   // Progress towards free delivery
+  const hasFreeDelivery = subtotal > 0 && (subtotal >= FREE_SHIPPING_THRESHOLD || coupon?.code === 'FREESHIP');
   const freeShippingNeeded = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
-  const freeShippingProgress = Math.min(100, Math.round((subtotal / FREE_SHIPPING_THRESHOLD) * 100));
+  const freeShippingProgress = subtotal > 0
+    ? Math.min(100, Math.round((subtotal / FREE_SHIPPING_THRESHOLD) * 100))
+    : 0;
 
   // Lock body scroll when drawer is open
   useEffect(() => {
@@ -152,7 +155,12 @@ export default function CartDrawer() {
 
           {/* Free Shipping Dynamic Progress Banner */}
           <div className="bg-gradient-to-r from-gray-50 via-red-50/30 to-gray-50 px-5 py-3 border-b border-gray-100 text-xs">
-            {freeShippingNeeded > 0 ? (
+            {hasFreeDelivery ? (
+              <div className="flex items-center gap-2 text-emerald-700 font-bold bg-emerald-50 p-2 rounded-xl border border-emerald-200">
+                <FiCheckCircle className="text-emerald-600 shrink-0" size={16} />
+                <span>🎉 Congratulations! You unlocked FREE Delivery anywhere in BD!</span>
+              </div>
+            ) : (
               <div>
                 <div className="flex items-center justify-between text-gray-700 font-semibold mb-1.5">
                   <span className="flex items-center gap-1.5">
@@ -167,11 +175,6 @@ export default function CartDrawer() {
                     style={{ width: `${freeShippingProgress}%` }}
                   />
                 </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 text-emerald-700 font-bold bg-emerald-50 p-2 rounded-xl border border-emerald-200">
-                <FiCheckCircle className="text-emerald-600 shrink-0" size={16} />
-                <span>🎉 Congratulations! You unlocked FREE Delivery anywhere in BD!</span>
               </div>
             )}
           </div>
@@ -201,7 +204,16 @@ export default function CartDrawer() {
               </div>
             ) : (
               items.map((item) => {
-                const itemPrice = item.discountPrice || item.price;
+                const itemPrice = Number(
+                  item.discountPrice !== null && item.discountPrice !== undefined && item.discountPrice !== ''
+                    ? item.discountPrice
+                    : item.price
+                ) || 0;
+                const itemImage =
+                  (Array.isArray(item.imageUrls) && item.imageUrls[0]) ||
+                  item.imageUrl ||
+                  item.image ||
+                  'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400';
                 return (
                   <div
                     key={item._id}
@@ -210,7 +222,7 @@ export default function CartDrawer() {
                     {/* Thumbnail */}
                     <div className="w-20 h-20 bg-white rounded-xl p-2 shrink-0 border border-gray-150 flex items-center justify-center overflow-hidden">
                       <img
-                        src={item.imageUrls?.[0] || 'https://via.placeholder.com/100'}
+                        src={itemImage}
                         alt={item.name}
                         className="w-full h-full object-contain mix-blend-multiply"
                       />

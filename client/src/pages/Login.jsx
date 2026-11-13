@@ -1,14 +1,17 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowLeft } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
-import { useAuthStore } from '../store/authStore';
+import { useAuthStore, isAdminEmail } from '../store/authStore';
 import api from '../lib/axios';
 import toast from 'react-hot-toast';
 import { auth, googleProvider, signInWithPopup, signInWithEmailAndPassword } from '../lib/firebase';
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectPath = searchParams.get('redirect') || '/';
+
   const setAuth = useAuthStore((s) => s.setAuth);
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPass, setShowPass] = useState(false);
@@ -17,45 +20,61 @@ export default function Login() {
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  // Google OAuth via Firebase
+  // Google OAuth via Firebase - Extracts REAL user profile (never fake placeholder)
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const firebaseUser = result.user;
 
-      const { data } = await api.post('/auth/google', {
-        name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
-        email: firebaseUser.email,
-        avatar: firebaseUser.photoURL || '',
-      });
-
-      setAuth(data.user, data.token);
-      toast.success(`Welcome back, ${data.user.name}!`);
-      navigate('/');
-    } catch (err) {
-      if (err.code === 'auth/popup-closed-by-user') {
-        setGoogleLoading(false);
-        return;
+      if (!firebaseUser) {
+        throw new Error('Google sign-in did not return user details.');
       }
 
-      console.warn('Firebase note:', err.message);
+      const email = (firebaseUser.email || '').trim().toLowerCase();
+      const name = firebaseUser.displayName || email.split('@')[0] || 'User';
+      const avatar = firebaseUser.photoURL || '';
+      const role = isAdminEmail(email) ? 'admin' : 'user';
 
-      // Graceful fallback for preview/testing
+      const realUser = {
+        _id: firebaseUser.uid,
+        name,
+        email,
+        avatar,
+        role,
+      };
+
+      let token = 'fb_' + firebaseUser.uid;
+
+      // Silently synchronize with backend if available
       try {
         const { data } = await api.post('/auth/google', {
-          name: 'Demo Google User',
-          email: 'google.user@modotech.shop',
-          avatar: '',
+          name: realUser.name,
+          email: realUser.email,
+          avatar: realUser.avatar,
         });
-        setAuth(data.user, data.token);
-        toast.success('Signed in with Google!');
-        navigate('/');
+        if (data?.user) {
+          token = data.token || token;
+          if (data.user.role) realUser.role = data.user.role;
+        }
       } catch {
-        setAuth({ name: 'Google User', email: 'user@modotech.shop', role: 'user' }, 'token_123');
-        toast.success('Signed in with Google!');
-        navigate('/');
+        // Backend offline / Vercel static — purely normal, we already have real Google user!
       }
+
+      setAuth(realUser, token);
+      toast.success(`Welcome back, ${realUser.name}! 👋`, {
+        style: { borderRadius: '12px' },
+      });
+      navigate(redirectPath);
+    } catch (err) {
+      if (err.code === 'auth/popup-closed-by-user') {
+        // User closed popup window, no error toast needed
+        return;
+      }
+      console.error('Google Sign-In Error:', err);
+      toast.error(err.message || 'Google sign-in failed. Please verify Firebase settings.', {
+        style: { borderRadius: '12px' },
+      });
     } finally {
       setGoogleLoading(false);
     }
@@ -65,6 +84,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
       const { data } = await api.post('/auth/login', form);
       setAuth(data.user, data.token);
@@ -72,13 +92,37 @@ export default function Login() {
       try {
         await signInWithEmailAndPassword(auth, form.email, form.password);
       } catch {
-        // Backend handles session
+        // Firebase sync optional
       }
 
-      toast.success(`Welcome back, ${data.user.name}! 👋`);
-      navigate('/');
+      toast.success(`Welcome back, ${data.user.name}! 👋`, {
+        style: { borderRadius: '12px' },
+      });
+      navigate(redirectPath);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Invalid email or password');
+      // If backend is offline, attempt direct Firebase authentication
+      try {
+        const result = await signInWithEmailAndPassword(auth, form.email, form.password);
+        const fbUser = result.user;
+        const email = (fbUser.email || form.email).trim().toLowerCase();
+        const role = isAdminEmail(email) ? 'admin' : 'user';
+        const userObj = {
+          _id: fbUser.uid,
+          name: fbUser.displayName || email.split('@')[0],
+          email,
+          avatar: fbUser.photoURL || '',
+          role,
+        };
+        setAuth(userObj, 'fb_' + fbUser.uid);
+        toast.success(`Welcome back, ${userObj.name}! 👋`, {
+          style: { borderRadius: '12px' },
+        });
+        navigate(redirectPath);
+      } catch {
+        toast.error(err.response?.data?.message || 'Invalid email or password', {
+          style: { borderRadius: '12px' },
+        });
+      }
     } finally {
       setLoading(false);
     }

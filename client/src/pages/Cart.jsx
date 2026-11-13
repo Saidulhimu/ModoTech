@@ -59,8 +59,11 @@ export default function Cart() {
   const shippingFee = getShippingFee();
   const grandTotal = getFinalTotal();
 
+  const hasFreeDelivery = subtotal > 0 && (subtotal >= FREE_SHIPPING_THRESHOLD || coupon?.code === 'FREESHIP');
   const freeShippingRemaining = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
-  const freeShippingProgress = Math.min(100, Math.round((subtotal / FREE_SHIPPING_THRESHOLD) * 100));
+  const freeShippingProgress = subtotal > 0
+    ? Math.min(100, Math.round((subtotal / FREE_SHIPPING_THRESHOLD) * 100))
+    : 0;
 
   const handleApplyCoupon = (e) => {
     e?.preventDefault();
@@ -104,7 +107,7 @@ export default function Cart() {
 
         {/* Free Shipping Progress Card */}
         <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-150 shadow-sm mb-8">
-          {freeShippingRemaining > 0 ? (
+          {!hasFreeDelivery ? (
             <div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                 <span className="flex items-center gap-2 text-dark font-semibold text-sm">
@@ -134,7 +137,16 @@ export default function Cart() {
           {/* Cart Items List */}
           <div className="lg:col-span-2 space-y-4">
             {items.map((item) => {
-              const itemPrice = item.discountPrice || item.price;
+              const itemPrice = Number(
+                item.discountPrice !== null && item.discountPrice !== undefined && item.discountPrice !== ''
+                  ? item.discountPrice
+                  : item.price
+              ) || 0;
+              const itemImage =
+                (Array.isArray(item.imageUrls) && item.imageUrls[0]) ||
+                item.imageUrl ||
+                item.image ||
+                'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400';
               return (
                 <div
                   key={item._id}
@@ -145,7 +157,7 @@ export default function Cart() {
                     className="w-full sm:w-28 h-28 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center p-3 border border-gray-100"
                   >
                     <img
-                      src={item.imageUrls?.[0] || 'https://via.placeholder.com/200'}
+                      src={itemImage}
                       alt={item.name}
                       className="w-full h-full object-contain mix-blend-multiply"
                     />

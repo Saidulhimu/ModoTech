@@ -285,6 +285,44 @@ export default function Profile() {
                   </span>
                 )}
               </Link>
+
+              {/* Admin Special Shortcuts (Only for Super Admin) */}
+              {isAdmin && (
+                <div className="pt-3 mt-2 border-t border-purple-100 space-y-1">
+                  <div className="px-4 py-1 text-[10px] font-black uppercase tracking-wider text-purple-700">
+                    Administrator
+                  </div>
+                  <Link
+                    to="/admin/products/add"
+                    className="w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold text-emerald-700 bg-emerald-50/70 hover:bg-emerald-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <FiPlusCircle size={16} />
+                      <span>Add New Product</span>
+                    </div>
+                    <span className="text-[10px] bg-emerald-200/80 px-1.5 py-0.5 rounded font-black">NEW</span>
+                  </Link>
+                  <Link
+                    to="/admin/orders"
+                    className="w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold text-blue-700 bg-blue-50/70 hover:bg-blue-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <FiPackage size={16} />
+                      <span>Admin Orders</span>
+                    </div>
+                  </Link>
+                  <Link
+                    to="/admin/dashboard"
+                    className="w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold text-purple-700 bg-purple-50/70 hover:bg-purple-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <FiShield size={16} />
+                      <span>Admin Dashboard</span>
+                    </div>
+                    <FiArrowRight size={14} />
+                  </Link>
+                </div>
+              )}
             </div>
           </aside>
 

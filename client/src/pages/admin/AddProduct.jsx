@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiUpload, FiX } from 'react-icons/fi';
 import api from '../../lib/axios';
+import productService from '../../services/productService';
 import toast from 'react-hot-toast';
 
-const categories = ['AMP Zone', 'Power Hub', 'Desk Setup', 'Smart Life', 'Cable Core', 'Other'];
+const categories = ['AMP Zone', 'Cable Core', 'Smart Hold', 'Smart Shells', 'Power Hub', 'Desk Setup', 'Other'];
 
 export default function AddProduct() {
   const { id } = useParams();
@@ -101,11 +102,13 @@ export default function AddProduct() {
       };
 
       if (isEdit) {
-        await api.put(`/products/${id}`, payload);
+        await productService.updateProduct(id, payload);
         toast.success('Product updated successfully! 🎉', { style: { borderRadius: '12px' } });
       } else {
-        await api.post('/products', payload);
-        toast.success('Product added successfully! 🎉', { style: { borderRadius: '12px' } });
+        await productService.createProduct(payload);
+        toast.success('Product added successfully! Visible to all users immediately. 🎉', {
+          style: { borderRadius: '12px' },
+        });
       }
       navigate('/admin/products');
     } catch (err) {

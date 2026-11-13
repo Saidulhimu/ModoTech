@@ -1,14 +1,17 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiArrowLeft } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
-import { useAuthStore } from '../store/authStore';
+import { useAuthStore, isAdminEmail } from '../store/authStore';
 import api from '../lib/axios';
 import toast from 'react-hot-toast';
 import { auth, googleProvider, signInWithPopup, createUserWithEmailAndPassword } from '../lib/firebase';
 
 export default function Register() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectPath = searchParams.get('redirect') || '/';
+
   const setAuth = useAuthStore((s) => s.setAuth);
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [showPass, setShowPass] = useState(false);
@@ -17,44 +20,59 @@ export default function Register() {
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  // Google OAuth via Firebase
+  // Google OAuth via Firebase - Extracts REAL user profile
   const handleGoogleSignUp = async () => {
     setGoogleLoading(true);
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const firebaseUser = result.user;
 
-      const { data } = await api.post('/auth/google', {
-        name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
-        email: firebaseUser.email,
-        avatar: firebaseUser.photoURL || '',
-      });
-
-      setAuth(data.user, data.token);
-      toast.success(`Welcome to ModoTech, ${data.user.name}! 🎉`);
-      navigate('/');
-    } catch (err) {
-      if (err.code === 'auth/popup-closed-by-user') {
-        setGoogleLoading(false);
-        return;
+      if (!firebaseUser) {
+        throw new Error('Google sign-up did not return user details.');
       }
 
-      console.warn('Firebase note:', err.message);
+      const email = (firebaseUser.email || '').trim().toLowerCase();
+      const name = firebaseUser.displayName || email.split('@')[0] || 'User';
+      const avatar = firebaseUser.photoURL || '';
+      const role = isAdminEmail(email) ? 'admin' : 'user';
+
+      const realUser = {
+        _id: firebaseUser.uid,
+        name,
+        email,
+        avatar,
+        role,
+      };
+
+      let token = 'fb_' + firebaseUser.uid;
 
       try {
         const { data } = await api.post('/auth/google', {
-          name: 'New Google User',
-          email: 'newuser@modotech.shop',
-          avatar: '',
+          name: realUser.name,
+          email: realUser.email,
+          avatar: realUser.avatar,
         });
-        setAuth(data.user, data.token);
-        toast.success('Signed up with Google!');
-        navigate('/');
+        if (data?.user) {
+          token = data.token || token;
+          if (data.user.role) realUser.role = data.user.role;
+        }
       } catch {
-        setAuth({ name: 'New User', email: 'newuser@modotech.shop', role: 'user' }, 'token_123');
-        toast.success('Signed up with Google!');
-        navigate('/');
+        // Backend offline / Vercel static — use real Google user
       }
+
+      setAuth(realUser, token);
+      toast.success(`Welcome to ModoTech, ${realUser.name}! 🎉`, {
+        style: { borderRadius: '12px' },
+      });
+      navigate(redirectPath);
+    } catch (err) {
+      if (err.code === 'auth/popup-closed-by-user') {
+        return;
+      }
+      console.error('Google Sign-Up Error:', err);
+      toast.error(err.message || 'Google registration failed. Please verify Firebase settings.', {
+        style: { borderRadius: '12px' },
+      });
     } finally {
       setGoogleLoading(false);
     }
@@ -68,6 +86,7 @@ export default function Register() {
       return;
     }
     setLoading(true);
+
     try {
       const { data } = await api.post('/auth/register', {
         name: form.name,
@@ -83,10 +102,34 @@ export default function Register() {
         // Backend handles auth
       }
 
-      toast.success(`Welcome to ModoTech, ${data.user.name}! 🎉`);
-      navigate('/');
+      toast.success(`Welcome to ModoTech, ${data.user.name}! 🎉`, {
+        style: { borderRadius: '12px' },
+      });
+      navigate(redirectPath);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Registration failed');
+      // If backend is offline, attempt direct Firebase registration
+      try {
+        const result = await createUserWithEmailAndPassword(auth, form.email, form.password);
+        const fbUser = result.user;
+        const email = (fbUser.email || form.email).trim().toLowerCase();
+        const role = isAdminEmail(email) ? 'admin' : 'user';
+        const userObj = {
+          _id: fbUser.uid,
+          name: form.name || email.split('@')[0],
+          email,
+          avatar: '',
+          role,
+        };
+        setAuth(userObj, 'fb_' + fbUser.uid);
+        toast.success(`Welcome to ModoTech, ${userObj.name}! 🎉`, {
+          style: { borderRadius: '12px' },
+        });
+        navigate(redirectPath);
+      } catch {
+        toast.error(err.response?.data?.message || 'Registration failed', {
+          style: { borderRadius: '12px' },
+        });
+      }
     } finally {
       setLoading(false);
     }
