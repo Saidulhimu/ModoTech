@@ -56,7 +56,7 @@ export default function AdminOrders() {
       );
 
       const orderShortId = String(order._id || '').slice(-6).toUpperCase();
-      const customerEmail = order.user?.email || null;
+      const customerEmail = order.user?.email || order.userEmail || null;
       const customerName = order.shippingAddress?.fullName || order.user?.name || 'Customer';
 
       // If status changed to Processing or Shipped, send Step 2 notification to user

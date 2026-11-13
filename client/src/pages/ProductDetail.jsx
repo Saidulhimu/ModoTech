@@ -332,8 +332,8 @@ export default function ProductDetail() {
                     key={i}
                     onClick={() => setActiveImage(i)}
                     className={`w-20 h-20 rounded-2xl overflow-hidden border-2 p-2 bg-gray-50 shrink-0 transition-all ${activeImage === i
-                        ? 'border-primary ring-2 ring-primary/20 scale-105'
-                        : 'border-gray-200 hover:border-gray-300 opacity-70 hover:opacity-100'
+                      ? 'border-primary ring-2 ring-primary/20 scale-105'
+                      : 'border-gray-200 hover:border-gray-300 opacity-70 hover:opacity-100'
                       }`}
                   >
                     <img src={url} alt="" className="w-full h-full object-contain mix-blend-multiply" />
@@ -423,11 +423,10 @@ export default function ProductDetail() {
                           key={c.name}
                           type="button"
                           onClick={() => setSelectedColor(c)}
-                          className={`flex items-center gap-2.5 px-3.5 py-2 rounded-xl border text-xs font-bold transition-all ${
-                            isSelected
+                          className={`flex items-center gap-2.5 px-3.5 py-2 rounded-xl border text-xs font-bold transition-all ${isSelected
                               ? 'border-primary bg-white text-primary shadow-sm ring-2 ring-primary/20 scale-[1.02]'
                               : 'border-gray-200 bg-white/70 text-gray-700 hover:border-gray-300 hover:bg-white'
-                          }`}
+                            }`}
                         >
                           <span
                             className="w-4 h-4 rounded-full border border-black/15 shrink-0 shadow-inner"
@@ -481,8 +480,8 @@ export default function ProductDetail() {
                 <button
                   onClick={() => toggleWishlist(product)}
                   className={`w-full sm:w-13 h-13 px-4 rounded-2xl border-2 transition-all flex items-center justify-center ${wishlisted
-                      ? 'bg-primary border-primary text-white shadow-md shadow-primary/30'
-                      : 'border-gray-200 text-gray-600 hover:border-primary hover:text-primary bg-white'
+                    ? 'bg-primary border-primary text-white shadow-md shadow-primary/30'
+                    : 'border-gray-200 text-gray-600 hover:border-primary hover:text-primary bg-white'
                     }`}
                   title={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
                 >

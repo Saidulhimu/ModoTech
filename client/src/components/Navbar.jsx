@@ -270,11 +270,10 @@ export default function Navbar({ transparent = false }) {
                         </div>
                         <p className="text-xs text-gray-400 truncate mb-1">{user.email}</p>
                         <span
-                          className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 ${
-                            isAdmin
+                          className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 ${isAdmin
                               ? 'bg-purple-100 text-purple-700'
                               : 'bg-emerald-100 text-emerald-700'
-                          }`}
+                            }`}
                         >
                           {isAdmin ? <FiShield size={11} /> : <FiCheckCircle size={11} />}
                           <span>{isAdmin ? 'Administrator' : 'Verified Member'}</span>
@@ -550,8 +549,7 @@ export default function Navbar({ transparent = false }) {
                   to="/admin/dashboard"
                   onClick={() => setMenuOpen(false)}
                   className={({ isActive }) =>
-                    `px-4 py-2.5 rounded-xl text-sm font-black uppercase transition-colors flex items-center gap-2 ${
-                      isActive ? 'bg-purple-600 text-white' : 'bg-purple-50 text-purple-700'
+                    `px-4 py-2.5 rounded-xl text-sm font-black uppercase transition-colors flex items-center gap-2 ${isActive ? 'bg-purple-600 text-white' : 'bg-purple-50 text-purple-700'
                     }`
                   }
                 >
