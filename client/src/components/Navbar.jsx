@@ -13,6 +13,8 @@ import {
   FiLogOut,
   FiShield,
   FiChevronDown,
+  FiPlus,
+  FiCheckCircle,
 } from 'react-icons/fi';
 import { useCartStore } from '../store/cartStore';
 import { useAuthStore, isAdminEmail } from '../store/authStore';
@@ -115,8 +117,7 @@ export default function Navbar({ transparent = false }) {
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) =>
-                  `text-sm font-bold tracking-wide uppercase hover:text-primary transition-colors ${
-                    isActive ? 'text-primary' : ''
+                  `text-sm font-bold tracking-wide uppercase hover:text-primary transition-colors ${isActive ? 'text-primary' : ''
                   }`
                 }
                 end={link.to === '/'}
@@ -130,14 +131,13 @@ export default function Navbar({ transparent = false }) {
               <NavLink
                 to="/admin/dashboard"
                 className={({ isActive }) =>
-                  `text-xs font-black tracking-wide uppercase px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 ${
-                    isActive
-                      ? 'bg-purple-600 text-white border-purple-600 shadow-sm shadow-purple-500/30'
-                      : 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100'
+                  `text-xs font-black tracking-wide uppercase px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 ${isActive
+                    ? 'bg-purple-600 text-white border-purple-600 shadow-sm shadow-purple-500/30'
+                    : 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100'
                   }`
                 }
               >
-                <span>👑</span>
+                <FiShield size={13} className="shrink-0 text-current" />
                 <span>Admin Panel</span>
               </NavLink>
             )}
@@ -252,12 +252,14 @@ export default function Navbar({ transparent = false }) {
                         </div>
                         <p className="text-xs text-gray-400 truncate mb-1">{user.email}</p>
                         <span
-                          className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full inline-block ${isAdmin
-                            ? 'bg-purple-100 text-purple-700'
-                            : 'bg-emerald-100 text-emerald-700'
-                            }`}
+                          className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 ${
+                            isAdmin
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'bg-emerald-100 text-emerald-700'
+                          }`}
                         >
-                          {isAdmin ? '🛡️ Admin' : '✨ Verified Member'}
+                          {isAdmin ? <FiShield size={11} /> : <FiCheckCircle size={11} />}
+                          <span>{isAdmin ? 'Administrator' : 'Verified Member'}</span>
                         </span>
                       </div>
                     </div>
@@ -318,7 +320,7 @@ export default function Navbar({ transparent = false }) {
                             className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-purple-50/80 hover:bg-purple-100 text-purple-800 transition-colors group"
                           >
                             <div className="w-8 h-8 rounded-lg bg-purple-200/70 text-purple-800 flex items-center justify-center font-bold">
-                              👑
+                              <FiShield size={15} />
                             </div>
                             <div className="flex-1">
                               <span className="font-bold text-xs block leading-snug">Admin Dashboard</span>
@@ -332,7 +334,7 @@ export default function Navbar({ transparent = false }) {
                             className="flex items-center gap-3 px-3.5 py-2 rounded-xl hover:bg-emerald-50 text-emerald-800 transition-colors group"
                           >
                             <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-                              ➕
+                              <FiPlus size={15} />
                             </div>
                             <div className="flex-1">
                               <span className="font-bold text-xs block leading-snug">Add New Product</span>
@@ -346,7 +348,7 @@ export default function Navbar({ transparent = false }) {
                             className="flex items-center gap-3 px-3.5 py-2 rounded-xl hover:bg-blue-50 text-blue-800 transition-colors group"
                           >
                             <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
-                              📦
+                              <FiPackage size={15} />
                             </div>
                             <div className="flex-1">
                               <span className="font-bold text-xs block leading-snug">Manage Orders</span>
@@ -435,8 +437,7 @@ export default function Navbar({ transparent = false }) {
                   to={link.to}
                   onClick={() => setMenuOpen(false)}
                   className={({ isActive }) =>
-                    `px-4 py-2.5 rounded-xl text-sm font-bold uppercase transition-colors ${
-                      isActive ? 'bg-primary text-white' : 'hover:bg-black/5'
+                    `px-4 py-2.5 rounded-xl text-sm font-bold uppercase transition-colors ${isActive ? 'bg-primary text-white' : 'hover:bg-black/5'
                     }`
                   }
                   end={link.to === '/'}
@@ -455,7 +456,7 @@ export default function Navbar({ transparent = false }) {
                     }`
                   }
                 >
-                  <span>👑</span> Admin Panel
+                  <FiShield size={14} /> Admin Panel
                 </NavLink>
               )}
 

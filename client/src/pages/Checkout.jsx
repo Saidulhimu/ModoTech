@@ -90,7 +90,7 @@ export default function Checkout() {
     if (!couponInput.trim()) return;
     const res = applyCoupon(couponInput);
     if (res.success) {
-      toast.success(res.message, { icon: '🎉', style: { borderRadius: '12px' } });
+      toast.success(res.message, { style: { borderRadius: '12px' } });
       setCouponInput('');
     } else {
       toast.error(res.message, { style: { borderRadius: '12px' } });
@@ -170,7 +170,7 @@ export default function Checkout() {
       useNotificationStore.getState().addNotification({
         targetRole: 'user',
         targetUserEmail: customerEmail,
-        title: `Order #${orderShortId} Confirmed! 🎉`,
+        title: `Order #${orderShortId} Confirmed`,
         message: `Hello ${customerName}, your order for ${formatBDT(grandTotal)} is placed! Waiting for Admin confirmation.`,
         type: 'order_placed',
         orderId: order._id,
@@ -182,14 +182,14 @@ export default function Checkout() {
       useNotificationStore.getState().addNotification({
         targetRole: 'admin',
         targetUserEmail: 'saidulhimuu@gmail.com',
-        title: `New Order #${orderShortId} Received! 🛒`,
+        title: `New Order #${orderShortId} Received`,
         message: `${customerName} (${form.phone}) ordered ${totalItems} item(s) worth ${formatBDT(grandTotal)}. Click to review & accept.`,
         type: 'admin_new_order',
         orderId: order._id,
         link: '/admin/orders',
       });
 
-      toast.success('Order placed successfully! 🎉', {
+      toast.success('Order placed successfully!', {
         style: { borderRadius: '14px', fontSize: '13px', fontWeight: 'bold' },
       });
       navigate(`/track-order?orderId=${order._id}&new=true`);
@@ -232,8 +232,8 @@ export default function Checkout() {
                     if (form.city !== 'Dhaka') setForm({ ...form, city: 'Dhaka' });
                   }}
                   className={`p-4 rounded-2xl border-2 text-left transition-all ${shippingArea === 'inside_dhaka'
-                      ? 'border-primary bg-primary/5 text-dark shadow-sm'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    ? 'border-primary bg-primary/5 text-dark shadow-sm'
+                    : 'border-gray-200 text-gray-600 hover:border-gray-300'
                     }`}
                 >
                   <div className="font-bold text-sm">Inside Dhaka</div>
@@ -247,8 +247,8 @@ export default function Checkout() {
                   type="button"
                   onClick={() => setShippingArea('outside_dhaka')}
                   className={`p-4 rounded-2xl border-2 text-left transition-all ${shippingArea === 'outside_dhaka'
-                      ? 'border-primary bg-primary/5 text-dark shadow-sm'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    ? 'border-primary bg-primary/5 text-dark shadow-sm'
+                    : 'border-gray-200 text-gray-600 hover:border-gray-300'
                     }`}
                 >
                   <div className="font-bold text-sm">Outside Dhaka</div>
@@ -377,8 +377,8 @@ export default function Checkout() {
                   <label
                     key={item.id}
                     className={`flex items-center justify-between p-4 border-2 rounded-2xl cursor-pointer transition-all ${form.paymentMethod === item.id
-                        ? 'border-primary bg-primary/5 shadow-xs'
-                        : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-primary bg-primary/5 shadow-xs'
+                      : 'border-gray-200 hover:border-gray-300'
                       }`}
                   >
                     <div className="flex items-center gap-3">

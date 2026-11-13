@@ -83,7 +83,6 @@ export default function CartDrawer() {
 
     if (result.success) {
       toast.success(result.message, {
-        icon: '🎉',
         style: { borderRadius: '12px' },
       });
       setCouponInput('');
@@ -98,7 +97,7 @@ export default function CartDrawer() {
     setCouponInput(code);
     const result = applyCoupon(code);
     if (result.success) {
-      toast.success(result.message, { icon: '🎉', style: { borderRadius: '12px' } });
+      toast.success(result.message, { style: { borderRadius: '12px' } });
       setCouponInput('');
     } else {
       toast.error(result.message);
@@ -158,7 +157,7 @@ export default function CartDrawer() {
             {hasFreeDelivery ? (
               <div className="flex items-center gap-2 text-emerald-700 font-bold bg-emerald-50 p-2 rounded-xl border border-emerald-200">
                 <FiCheckCircle className="text-emerald-600 shrink-0" size={16} />
-                <span>🎉 Congratulations! You unlocked FREE Delivery anywhere in BD!</span>
+                <span>Congratulations! You unlocked FREE Delivery across Bangladesh!</span>
               </div>
             ) : (
               <div>

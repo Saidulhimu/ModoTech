@@ -64,7 +64,7 @@ export default function AdminOrders() {
         useNotificationStore.getState().addNotification({
           targetRole: 'user',
           targetUserEmail: customerEmail,
-          title: `Order #${orderShortId} Accepted by Admin! 🚀`,
+          title: `Order #${orderShortId} Accepted by Admin`,
           message: `Great news, ${customerName}! Admin has confirmed and accepted your order. Package is being prepared for dispatch!`,
           type: 'order_accepted',
           orderId: order._id,
@@ -72,8 +72,7 @@ export default function AdminOrders() {
           showToast: true,
         });
 
-        toast.success(`Order #${orderShortId} accepted! 2nd notification sent to customer.`, {
-          icon: '🚀',
+        toast.success(`Order #${orderShortId} accepted! Notification sent to customer.`, {
           style: { borderRadius: '12px' },
         });
       } else {

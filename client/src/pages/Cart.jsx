@@ -71,7 +71,7 @@ export default function Cart() {
 
     const res = applyCoupon(couponCodeInput);
     if (res.success) {
-      toast.success(res.message, { icon: '🎉', style: { borderRadius: '12px' } });
+      toast.success(res.message, { style: { borderRadius: '12px' } });
       setCouponCodeInput('');
     } else {
       toast.error(res.message, { style: { borderRadius: '12px' } });
@@ -82,7 +82,7 @@ export default function Cart() {
     setCouponCodeInput(code);
     const res = applyCoupon(code);
     if (res.success) {
-      toast.success(res.message, { icon: '🎉', style: { borderRadius: '12px' } });
+      toast.success(res.message, { style: { borderRadius: '12px' } });
       setCouponCodeInput('');
     } else {
       toast.error(res.message);
@@ -127,7 +127,7 @@ export default function Cart() {
             <div className="flex items-center gap-3 text-emerald-800 bg-emerald-50/80 p-3 rounded-xl border border-emerald-200">
               <FiCheckCircle className="text-emerald-600 text-lg shrink-0" />
               <span className="text-sm font-bold">
-                🎉 Awesome! You have unlocked FREE Delivery on this entire order!
+                Awesome! You have unlocked FREE Delivery on this entire order!
               </span>
             </div>
           )}
@@ -263,8 +263,8 @@ export default function Cart() {
                     type="button"
                     onClick={() => setShippingArea('inside_dhaka')}
                     className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all ${shippingArea === 'inside_dhaka'
-                        ? 'border-primary bg-primary/5 text-primary shadow-xs'
-                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      ? 'border-primary bg-primary/5 text-primary shadow-xs'
+                      : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                       }`}
                   >
                     <div>Inside Dhaka</div>
@@ -276,8 +276,8 @@ export default function Cart() {
                     type="button"
                     onClick={() => setShippingArea('outside_dhaka')}
                     className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all ${shippingArea === 'outside_dhaka'
-                        ? 'border-primary bg-primary/5 text-primary shadow-xs'
-                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      ? 'border-primary bg-primary/5 text-primary shadow-xs'
+                      : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                       }`}
                   >
                     <div>Outside Dhaka</div>

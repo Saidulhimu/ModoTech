@@ -83,7 +83,7 @@ export default function TrackOrder() {
               </div>
               <div className="flex-1">
                 <h2 className="text-xl font-black text-emerald-950">
-                  🎉 Congratulations! Your Order is Confirmed!
+                  Your Order is Confirmed
                 </h2>
                 <p className="text-xs sm:text-sm text-emerald-800 mt-1 leading-relaxed">
                   We have received your order and our dispatch team is prepping your parcel. You can track real-time delivery progress or print your official cash memo below.

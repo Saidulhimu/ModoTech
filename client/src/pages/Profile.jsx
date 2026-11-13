@@ -201,12 +201,14 @@ export default function Profile() {
                   {user?.name || 'Customer'}
                 </h1>
                 <span
-                  className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full uppercase ${user?.role === 'admin'
-                    ? 'bg-purple-100 text-purple-700'
-                    : 'bg-emerald-100 text-emerald-700'
-                    }`}
+                  className={`text-[11px] font-extrabold px-3 py-1 rounded-full uppercase inline-flex items-center gap-1.5 ${
+                    user?.role === 'admin'
+                      ? 'bg-purple-100 text-purple-700'
+                      : 'bg-emerald-100 text-emerald-700'
+                  }`}
                 >
-                  {user?.role === 'admin' ? '🛡️ Admin' : '✨ Member'}
+                  {user?.role === 'admin' ? <FiShield size={12} /> : <FiCheckCircle size={12} />}
+                  <span>{user?.role === 'admin' ? 'Administrator' : 'Verified Member'}</span>
                 </span>
               </div>
               <p className="text-gray-400 text-sm mt-0.5 flex items-center gap-1.5">
@@ -338,13 +340,13 @@ export default function Profile() {
                   <div className="bg-gradient-to-br from-gray-900 via-gray-950 to-black text-white rounded-3xl p-6 sm:p-7 shadow-xl border border-gray-800">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-white/10 mb-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-purple-600/30 border border-purple-500/50 flex items-center justify-center text-purple-300 font-bold text-lg">
-                          👑
+                        <div className="w-10 h-10 rounded-2xl bg-purple-600/30 border border-purple-500/50 flex items-center justify-center text-purple-300 font-bold">
+                          <FiShield size={20} />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
                             <h3 className="text-lg font-black text-white">Administrator Control Panel</h3>
-                            <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-bold uppercase">
+                            <span className="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-bold uppercase tracking-wider">
                               Super Admin
                             </span>
                           </div>
@@ -567,25 +569,31 @@ export default function Profile() {
                     to="/shop"
                     className="p-5 rounded-3xl bg-gradient-to-br from-dark to-gray-800 text-white shadow-md hover:-translate-y-1 transition-transform group"
                   >
-                    <span className="text-2xl mb-2 block">⚡</span>
+                    <div className="w-10 h-10 rounded-2xl bg-white/10 text-white flex items-center justify-center mb-3">
+                      <FiShoppingBag size={20} />
+                    </div>
                     <h4 className="font-bold text-sm">Shop Latest Gear</h4>
                     <p className="text-xs text-gray-400 mt-1">Explore authentic chargers, docks and audio</p>
                   </Link>
 
                   <Link
                     to="/track-order"
-                    className="p-5 rounded-3xl bg-white border border-gray-150 shadow-sm hover:-translate-y-1 transition-transform"
+                    className="p-5 rounded-3xl bg-white border border-gray-150 shadow-sm hover:-translate-y-1 transition-transform group"
                   >
-                    <span className="text-2xl mb-2 block">📦</span>
+                    <div className="w-10 h-10 rounded-2xl bg-gray-100 text-dark group-hover:bg-primary/10 group-hover:text-primary flex items-center justify-center mb-3 transition-colors">
+                      <FiTruck size={20} />
+                    </div>
                     <h4 className="font-bold text-sm text-dark">Track Delivery</h4>
                     <p className="text-xs text-gray-400 mt-1">Live shipment updates on your parcel</p>
                   </Link>
 
                   <button
                     onClick={() => handleTabChange('settings')}
-                    className="p-5 rounded-3xl bg-white border border-gray-150 shadow-sm hover:-translate-y-1 transition-transform text-left"
+                    className="p-5 rounded-3xl bg-white border border-gray-150 shadow-sm hover:-translate-y-1 transition-transform text-left group"
                   >
-                    <span className="text-2xl mb-2 block">⚙️</span>
+                    <div className="w-10 h-10 rounded-2xl bg-gray-100 text-dark group-hover:bg-primary/10 group-hover:text-primary flex items-center justify-center mb-3 transition-colors">
+                      <FiSettings size={20} />
+                    </div>
                     <h4 className="font-bold text-sm text-dark">Profile Settings</h4>
                     <p className="text-xs text-gray-400 mt-1">Edit address, phone number and security</p>
                   </button>

@@ -11,7 +11,7 @@ export const useNotificationStore = create(
           id: 'notif_welcome',
           targetRole: 'all',
           targetUserEmail: null,
-          title: 'Welcome to ModoTech! ⚡',
+          title: 'Welcome to ModoTech',
           message: 'Explore genuine audio, chargers, mechanical keyboards and gadgets with official 1-year warranty.',
           type: 'system',
           orderId: null,
@@ -48,8 +48,7 @@ export const useNotificationStore = create(
         set({ notifications: [newNotif, ...get().notifications] });
 
         if (showToast) {
-          toast(title, {
-            icon: type === 'order_accepted' ? '🚀' : type === 'order_placed' ? '📦' : '🔔',
+          toast.success(title, {
             style: { borderRadius: '14px', fontSize: '13px', fontWeight: 'bold' },
           });
         }
