@@ -4,6 +4,8 @@ import {
   FiMapPin,
   FiCreditCard,
   FiCheck,
+  FiCopy,
+  FiSmartphone,
   FiTruck,
   FiTag,
   FiShield,
@@ -19,6 +21,8 @@ import { useNotificationStore } from '../store/notificationStore';
 import { formatBDT } from '../lib/format';
 import orderService from '../services/orderService';
 import toast from 'react-hot-toast';
+
+const SEND_MONEY_NUMBER = '01303962860';
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -42,6 +46,9 @@ export default function Checkout() {
 
   const [loading, setLoading] = useState(false);
   const [couponInput, setCouponInput] = useState('');
+  const [paymentPhone, setPaymentPhone] = useState('');
+  const [transactionId, setTransactionId] = useState('');
+  const [copiedNumber, setCopiedNumber] = useState(false);
   const [form, setForm] = useState({
     fullName: user?.name || '',
     phone: user?.phone || '',
@@ -97,6 +104,16 @@ export default function Checkout() {
     }
   };
 
+  const handleCopyNumber = () => {
+    navigator.clipboard.writeText(SEND_MONEY_NUMBER);
+    setCopiedNumber(true);
+    toast.success('Number copied: 01303962860', {
+      icon: '📋',
+      style: { borderRadius: '12px' },
+    });
+    setTimeout(() => setCopiedNumber(false), 2500);
+  };
+
   const handleOrder = async (e) => {
     e.preventDefault();
     if (!form.phone.trim()) {
@@ -107,6 +124,17 @@ export default function Checkout() {
     if (!form.street.trim()) {
       toast.error('Please enter your detailed delivery address');
       return;
+    }
+
+    if (form.paymentMethod === 'bKash' || form.paymentMethod === 'Nagad') {
+      if (!paymentPhone.trim()) {
+        toast.error(`Please enter your ${form.paymentMethod} account / sender mobile number`);
+        return;
+      }
+      if (!transactionId.trim()) {
+        toast.error(`Please enter the ${form.paymentMethod} Transaction ID (TrxID)`);
+        return;
+      }
     }
 
     setLoading(true);
@@ -132,6 +160,7 @@ export default function Checkout() {
           return {
             product: item._id,
             name: item.name || 'Tech Product',
+            selectedColor: item.selectedColor || null,
             imageUrl: itemImage,
             price: itemPrice,
             quantity: Number(item.quantity) || 1,
@@ -149,6 +178,14 @@ export default function Checkout() {
         deliveryArea: shippingArea,
         deliveryNote: deliveryNote,
         paymentMethod: form.paymentMethod,
+        paymentDetails:
+          form.paymentMethod === 'Cash on Delivery'
+            ? { method: 'Cash on Delivery' }
+            : {
+                method: form.paymentMethod,
+                senderNumber: paymentPhone.trim(),
+                transactionId: transactionId.trim().toUpperCase(),
+              },
         coupon: coupon
           ? {
             code: coupon.code,
@@ -179,11 +216,15 @@ export default function Checkout() {
       });
 
       // 2. Notification for Admin (Step 1)
+      const payDetailNote = transactionId.trim()
+        ? ` via ${form.paymentMethod} (TrxID: ${transactionId.trim().toUpperCase()})`
+        : ` via ${form.paymentMethod}`;
+
       useNotificationStore.getState().addNotification({
         targetRole: 'admin',
         targetUserEmail: 'saidulhimuu@gmail.com',
         title: `New Order #${orderShortId} Received`,
-        message: `${customerName} (${form.phone}) ordered ${totalItems} item(s) worth ${formatBDT(grandTotal)}. Click to review & accept.`,
+        message: `${customerName} (${form.phone}) ordered ${totalItems} item(s) worth ${formatBDT(grandTotal)}${payDetailNote}. Click to review & accept.`,
         type: 'admin_new_order',
         orderId: order._id,
         link: '/admin/orders',
@@ -400,6 +441,100 @@ export default function Checkout() {
                   </label>
                 ))}
               </div>
+
+              {/* bKash / Nagad Send Money Instructions & TrxID Input Card */}
+              {(form.paymentMethod === 'bKash' || form.paymentMethod === 'Nagad') && (
+                <div className="mt-4 p-5 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100/80 border border-gray-200 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between pb-3 border-b border-gray-200">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-xs shadow-sm ${
+                          form.paymentMethod === 'bKash' ? 'bg-[#D12053]' : 'bg-[#F7941D]'
+                        }`}
+                      >
+                        {form.paymentMethod === 'bKash' ? 'bK' : 'NG'}
+                      </div>
+                      <div>
+                        <h4 className="text-xs sm:text-sm font-black text-gray-900">
+                          {form.paymentMethod} Personal Send Money
+                        </h4>
+                        <p className="text-[11px] text-gray-500">
+                          Send total <strong>{formatBDT(grandTotal)}</strong> to our verified account
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                      Active 24/7
+                    </span>
+                  </div>
+
+                  {/* Send Money Number Display with 1-Click Copy */}
+                  <div className="my-3.5 p-3.5 bg-white rounded-xl border border-gray-200 flex items-center justify-between shadow-2xs">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">
+                        Personal Account Number
+                      </span>
+                      <span className="font-mono font-black text-base sm:text-lg text-gray-900 tracking-wider">
+                        {SEND_MONEY_NUMBER}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleCopyNumber}
+                      className="flex items-center gap-1.5 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-800 text-xs font-bold rounded-xl transition-all"
+                    >
+                      {copiedNumber ? (
+                        <>
+                          <FiCheck className="text-emerald-600" size={14} />
+                          <span className="text-emerald-700">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <FiCopy size={14} />
+                          <span>Copy Number</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Instructions List */}
+                  <ol className="text-[11px] text-gray-600 space-y-1 mb-4 pl-4 list-decimal leading-relaxed">
+                    <li>Open your <strong>{form.paymentMethod} App</strong> &rarr; tap <strong>Send Money</strong>.</li>
+                    <li>Enter receiver number: <strong className="font-mono text-dark">{SEND_MONEY_NUMBER}</strong></li>
+                    <li>Amount: <strong className="text-primary">{formatBDT(grandTotal)}</strong></li>
+                    <li>Reference: <span className="font-mono font-bold text-dark">{form.fullName || 'ModoTech'}</span></li>
+                    <li>Complete payment and copy the <strong>Transaction ID (TrxID)</strong>.</li>
+                  </ol>
+
+                  {/* Inputs */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                        Your {form.paymentMethod} Mobile Number *
+                      </label>
+                      <input
+                        type="tel"
+                        value={paymentPhone}
+                        onChange={(e) => setPaymentPhone(e.target.value)}
+                        placeholder="01XXXXXXXXX"
+                        className="w-full border border-gray-300 rounded-xl py-2 px-3 text-xs sm:text-sm font-mono focus:outline-none focus:border-primary bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                        Transaction ID (TrxID) *
+                      </label>
+                      <input
+                        type="text"
+                        value={transactionId}
+                        onChange={(e) => setTransactionId(e.target.value)}
+                        placeholder="e.g. BL99XK281M"
+                        className="w-full border border-gray-300 rounded-xl py-2 px-3 text-xs sm:text-sm font-mono uppercase focus:outline-none focus:border-primary bg-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <button
@@ -433,7 +568,7 @@ export default function Checkout() {
                     item.image ||
                     'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400';
                   return (
-                    <div key={item._id} className="flex gap-3 items-center">
+                    <div key={item.cartId || item._id} className="flex gap-3 items-center">
                       <div className="w-14 h-14 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100 p-1 flex items-center justify-center">
                         <img
                           src={itemImage}
@@ -443,6 +578,9 @@ export default function Checkout() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-dark line-clamp-1">{item.name}</p>
+                        {item.selectedColor && (
+                          <p className="text-[10px] text-gray-500 font-medium">Color: {item.selectedColor}</p>
+                        )}
                         <p className="text-[11px] text-gray-400">Qty: {item.quantity}</p>
                       </div>
                       <span className="font-bold text-xs sm:text-sm text-dark">

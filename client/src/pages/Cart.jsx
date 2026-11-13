@@ -149,7 +149,7 @@ export default function Cart() {
                 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400';
               return (
                 <div
-                  key={item._id}
+                  key={item.cartId || item._id}
                   className="bg-white rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row gap-5 border border-gray-150 shadow-sm hover:shadow-md transition-shadow"
                 >
                   <Link
@@ -166,15 +166,23 @@ export default function Cart() {
                   <div className="flex-1 min-w-0 flex flex-col justify-between">
                     <div>
                       <div className="flex justify-between items-start gap-2">
-                        <Link
-                          to={`/product/${item._id}`}
-                          className="font-bold text-dark hover:text-primary transition-colors text-base line-clamp-2 leading-snug"
-                        >
-                          {item.name}
-                        </Link>
+                        <div>
+                          <Link
+                            to={`/product/${item._id}`}
+                            className="font-bold text-dark hover:text-primary transition-colors text-base line-clamp-2 leading-snug"
+                          >
+                            {item.name}
+                          </Link>
+                          {item.selectedColor && (
+                            <div className="inline-flex items-center gap-1.5 text-xs text-gray-600 bg-gray-100/80 border border-gray-200/80 px-2.5 py-0.5 rounded-lg mt-1.5 font-medium">
+                              <span className="w-2 h-2 rounded-full bg-primary" />
+                              <span>Color: <strong className="text-gray-900">{item.selectedColor}</strong></span>
+                            </div>
+                          )}
+                        </div>
                         <button
                           onClick={() => {
-                            removeFromCart(item._id);
+                            removeFromCart(item.cartId || item._id);
                             toast.success('Removed from cart', { icon: '🗑️' });
                           }}
                           className="text-gray-400 hover:text-red-500 transition-colors p-1"
@@ -192,7 +200,7 @@ export default function Cart() {
                       {/* Quantity Selector */}
                       <div className="flex items-center border border-gray-200 rounded-xl bg-gray-50/50 overflow-hidden shadow-xs">
                         <button
-                          onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.cartId || item._id, item.quantity - 1)}
                           className="w-8 h-8 flex items-center justify-center hover:bg-white text-gray-600 transition-colors"
                           aria-label="Decrease quantity"
                         >
@@ -202,7 +210,7 @@ export default function Cart() {
                           {item.quantity}
                         </span>
                         <button
-                          onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.cartId || item._id, item.quantity + 1)}
                           className="w-8 h-8 flex items-center justify-center hover:bg-white text-gray-600 transition-colors"
                           aria-label="Increase quantity"
                         >

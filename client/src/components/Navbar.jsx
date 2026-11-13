@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   FiSearch,
@@ -15,11 +15,14 @@ import {
   FiChevronDown,
   FiPlus,
   FiCheckCircle,
+  FiArrowRight,
 } from 'react-icons/fi';
 import { useCartStore } from '../store/cartStore';
 import { useAuthStore, isAdminEmail } from '../store/authStore';
 import { useWishlistStore } from '../store/wishlistStore';
 import NotificationBell from './NotificationBell';
+import { getAllAvailableProducts } from '../services/productService';
+import { formatBDT } from '../lib/format';
 import { auth, signOut } from '../lib/firebase';
 import toast from 'react-hot-toast';
 
@@ -44,6 +47,21 @@ export default function Navbar({ transparent = false }) {
   const wishlistCount = useWishlistStore((s) => s.items.length);
   const { isAuthenticated, user, logout } = useAuthStore();
   const isAdmin = user?.role === 'admin' || isAdminEmail(user?.email);
+
+  // Live Auto-Complete search results
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q || q.length < 1) return [];
+    const all = getAllAvailableProducts();
+    return all
+      .filter(
+        (p) =>
+          p.name?.toLowerCase().includes(q) ||
+          p.category?.toLowerCase().includes(q) ||
+          p.description?.toLowerCase().includes(q)
+      )
+      .slice(0, 5);
+  }, [searchQuery]);
 
   // Scroll listener for transparent header effect
   useEffect(() => {
@@ -397,33 +415,114 @@ export default function Navbar({ transparent = false }) {
           </div>
         </div>
 
-        {/* Search Expansion Dropdown */}
+        {/* Search Expansion Dropdown & Live Auto-Complete */}
         {searchOpen && (
           <div className="pb-4 animate-in fade-in duration-200">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (searchQuery.trim()) {
-                  window.location.href = `/shop?search=${encodeURIComponent(searchQuery.trim())}`;
-                }
-              }}
-              className="relative max-w-xl mx-auto"
-            >
-              <input
-                type="text"
-                placeholder="Search gadgets, accessories, power banks..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                autoFocus
-                className="w-full border border-gray-200 rounded-2xl py-3 px-5 pr-14 text-dark focus:outline-none focus:border-primary shadow-sm bg-white"
-              />
-              <button
-                type="submit"
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-primary transition-colors"
+            <div className="relative max-w-xl mx-auto">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (searchQuery.trim()) {
+                    setSearchOpen(false);
+                    navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
+                  }
+                }}
               >
-                <FiSearch size={18} />
-              </button>
-            </form>
+                <input
+                  type="text"
+                  placeholder="Search gadgets, accessories, power banks..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  autoFocus
+                  className="w-full border border-gray-200 rounded-2xl py-3 px-5 pr-14 text-dark focus:outline-none focus:border-primary shadow-sm bg-white"
+                />
+                <button
+                  type="submit"
+                  className="absolute right-3 top-3 p-2 text-gray-500 hover:text-primary transition-colors"
+                  aria-label="Search"
+                >
+                  <FiSearch size={18} />
+                </button>
+              </form>
+
+              {/* Live Search Auto-Complete Dropdown */}
+              {searchQuery.trim().length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                  {searchResults.length > 0 ? (
+                    <div>
+                      <div className="px-4 py-2 bg-gray-50/80 border-b border-gray-100 flex items-center justify-between text-xs text-gray-500 font-semibold">
+                        <span>Matching Products ({searchResults.length})</span>
+                        <span>Click to view details</span>
+                      </div>
+                      <div className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
+                        {searchResults.map((p) => {
+                          const img = p.images?.[0] || p.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100';
+                          return (
+                            <button
+                              key={p._id}
+                              type="button"
+                              onClick={() => {
+                                setSearchOpen(false);
+                                setSearchQuery('');
+                                navigate(`/product/${p._id}`);
+                              }}
+                              className="w-full px-4 py-3 flex items-center gap-3.5 hover:bg-gray-50/80 transition-colors text-left group"
+                            >
+                              <img
+                                src={img}
+                                alt={p.name}
+                                className="w-12 h-12 object-cover rounded-xl border border-gray-100 flex-shrink-0 group-hover:scale-105 transition-transform"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs uppercase tracking-wider text-primary font-bold line-clamp-1">
+                                  {p.category || 'Gadget'}
+                                </p>
+                                <p className="text-sm font-semibold text-gray-900 line-clamp-1 group-hover:text-primary transition-colors">
+                                  {p.name}
+                                </p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <span className="text-xs font-black text-gray-900">
+                                    {formatBDT(p.price)}
+                                  </span>
+                                  {p.originalPrice && p.originalPrice > p.price && (
+                                    <span className="text-[10px] text-gray-400 line-through">
+                                      {formatBDT(p.originalPrice)}
+                                    </span>
+                                  )}
+                                  {p.isFeatured && (
+                                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-50 text-amber-700 font-bold border border-amber-200/60">
+                                      Popular
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="p-2.5 bg-gray-50/80 border-t border-gray-100 text-center">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSearchOpen(false);
+                            navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
+                          }}
+                          className="text-xs font-bold text-primary hover:underline inline-flex items-center gap-1"
+                        >
+                          View all results for &ldquo;{searchQuery}&rdquo; &rarr;
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-6 text-center text-sm text-gray-500">
+                      <FiSearch className="mx-auto mb-2 text-gray-300" size={24} />
+                      <p className="font-semibold text-gray-700">No gadgets found for &ldquo;{searchQuery}&rdquo;</p>
+                      <p className="text-xs text-gray-400 mt-1">Try checking for typos or searching general terms like &lsquo;headphone&rsquo; or &lsquo;charger&rsquo;</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

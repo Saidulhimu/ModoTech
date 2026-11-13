@@ -50,7 +50,7 @@ export const useCartStore = create(
       toggleDrawer: () => set((state) => ({ isDrawerOpen: !state.isDrawerOpen })),
 
       // Cart operations
-      addToCart: (product, quantity = 1, openDrawerImmediately = true) => {
+      addToCart: (product, quantity = 1, openDrawerImmediately = true, selectedColor = null) => {
         if (!product) return;
 
         const safePrice = Number(product.price) || 0;
@@ -70,9 +70,19 @@ export const useCartStore = create(
             ? [product.image]
             : ['https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800'];
 
+        const colorName =
+          typeof selectedColor === 'object' && selectedColor !== null
+            ? selectedColor.name
+            : selectedColor || product.selectedColor || null;
+
+        const baseId = String(product._id || `item_${Date.now()}`);
+        const cartId = colorName ? `${baseId}__${colorName}` : baseId;
+
         const sanitized = {
           ...product,
-          _id: String(product._id || `item_${Date.now()}`),
+          _id: baseId,
+          cartId,
+          selectedColor: colorName,
           name: product.name || 'Tech Gadget',
           price: safePrice,
           discountPrice: safeDiscount,
@@ -82,7 +92,7 @@ export const useCartStore = create(
         const qty = Math.max(1, Number(quantity) || 1);
         const currentItems = Array.isArray(get().items) ? get().items : [];
         const existingIndex = currentItems.findIndex(
-          (item) => String(item._id) === String(sanitized._id)
+          (item) => (item.cartId || item._id) === cartId
         );
 
         if (existingIndex >= 0) {
@@ -103,18 +113,26 @@ export const useCartStore = create(
         }
       },
 
-      removeFromCart: (productId) => {
+      removeFromCart: (cartIdOrProductId) => {
+        const targetId = String(cartIdOrProductId);
         const currentItems = Array.isArray(get().items) ? get().items : [];
-        set({ items: currentItems.filter((item) => String(item._id) !== String(productId)) });
+        set({
+          items: currentItems.filter(
+            (item) => String(item.cartId || item._id) !== targetId && String(item._id) !== targetId
+          ),
+        });
       },
 
-      updateQuantity: (productId, quantity) => {
+      updateQuantity: (cartIdOrProductId, quantity) => {
         const qty = Number(quantity);
         if (isNaN(qty) || qty < 1) return;
+        const targetId = String(cartIdOrProductId);
         const currentItems = Array.isArray(get().items) ? get().items : [];
         set({
           items: currentItems.map((item) =>
-            String(item._id) === String(productId) ? { ...item, quantity: qty } : item
+            String(item.cartId || item._id) === targetId || String(item._id) === targetId
+              ? { ...item, quantity: qty }
+              : item
           ),
         });
       },

@@ -13,6 +13,11 @@ export const demoProducts = [
     isFeatured: true,
     rating: 4.9,
     numReviews: 128,
+    colors: [
+      { name: 'Midnight Black', hex: '#18181B' },
+      { name: 'Platinum Silver', hex: '#E4E4E7' },
+      { name: 'Midnight Blue', hex: '#1E3A8A' }
+    ],
     imageUrls: [
       'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80',
@@ -45,6 +50,12 @@ export const demoProducts = [
     isFeatured: false,
     rating: 4.7,
     numReviews: 85,
+    colors: [
+      { name: 'Stealth Black', hex: '#18181B' },
+      { name: 'Squad Camo', hex: '#4B5563' },
+      { name: 'Ocean Blue', hex: '#2563EB' },
+      { name: 'Fiery Red', hex: '#DC2626' }
+    ],
     imageUrls: [
       'https://images.unsplash.com/photo-1545454675-3531b543be5d?w=800&auto=format&fit=crop&q=80',
     ],
@@ -60,6 +71,10 @@ export const demoProducts = [
     isFeatured: true,
     rating: 4.9,
     numReviews: 64,
+    colors: [
+      { name: 'Black & Brass', hex: '#1C1917' },
+      { name: 'Cream White', hex: '#F5F5F4' }
+    ],
     imageUrls: [
       'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=800&auto=format&fit=crop&q=80',
     ],
@@ -124,6 +139,10 @@ export const demoProducts = [
     isFeatured: true,
     rating: 4.9,
     numReviews: 195,
+    colors: [
+      { name: 'Space Gray', hex: '#4B5563' },
+      { name: 'Matte Black', hex: '#18181B' }
+    ],
     imageUrls: [
       'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&auto=format&fit=crop&q=80',
     ],
@@ -184,6 +203,10 @@ export const demoProducts = [
     isFeatured: true,
     rating: 4.9,
     numReviews: 165,
+    colors: [
+      { name: 'Piano Black', hex: '#18181B' },
+      { name: 'Pure White', hex: '#FFFFFF' }
+    ],
     imageUrls: [
       'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&auto=format&fit=crop&q=80',
     ],
@@ -249,6 +272,11 @@ export const demoProducts = [
     isFeatured: true,
     rating: 4.9,
     numReviews: 110,
+    colors: [
+      { name: 'Space Gray', hex: '#4B5563' },
+      { name: 'Silver White', hex: '#E5E7EB' },
+      { name: 'Midnight Dark', hex: '#18181B' }
+    ],
     imageUrls: [
       'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=800&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1586775490184-b79f0621891f?w=800&auto=format&fit=crop&q=80',
@@ -310,6 +338,10 @@ export const demoProducts = [
     isFeatured: true,
     rating: 4.9,
     numReviews: 310,
+    colors: [
+      { name: 'Graphite Black', hex: '#27272A' },
+      { name: 'Pale Gray', hex: '#E4E4E7' }
+    ],
     imageUrls: [
       'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800&auto=format&fit=crop&q=80',
     ],
@@ -344,6 +376,11 @@ export const demoProducts = [
     isFeatured: true,
     rating: 4.9,
     numReviews: 180,
+    colors: [
+      { name: 'Rustic Brown', hex: '#78350F' },
+      { name: 'Horween Black', hex: '#1C1917' },
+      { name: 'English Tan', hex: '#B45309' }
+    ],
     imageUrls: [
       'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=800&auto=format&fit=crop&q=80',
     ],

@@ -127,7 +127,7 @@ export default function CartDrawer() {
 
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
         <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out">
-          
+
           {/* Header */}
           <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between bg-white z-10">
             <div className="flex items-center gap-2.5">
@@ -203,6 +203,7 @@ export default function CartDrawer() {
               </div>
             ) : (
               items.map((item) => {
+                const itemKey = item.cartId || item._id;
                 const itemPrice = Number(
                   item.discountPrice !== null && item.discountPrice !== undefined && item.discountPrice !== ''
                     ? item.discountPrice
@@ -215,7 +216,7 @@ export default function CartDrawer() {
                   'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400';
                 return (
                   <div
-                    key={item._id}
+                    key={itemKey}
                     className="flex gap-3.5 p-3 rounded-2xl bg-gray-50/70 border border-gray-100 hover:border-gray-200 transition-colors"
                   >
                     {/* Thumbnail */}
@@ -230,15 +231,23 @@ export default function CartDrawer() {
                     {/* Details */}
                     <div className="flex-1 min-w-0 flex flex-col justify-between">
                       <div className="flex justify-between items-start gap-1">
-                        <Link
-                          to={`/product/${item._id}`}
-                          onClick={closeDrawer}
-                          className="font-bold text-xs sm:text-sm text-dark hover:text-primary transition-colors line-clamp-2 leading-snug"
-                        >
-                          {item.name}
-                        </Link>
+                        <div>
+                          <Link
+                            to={`/product/${item._id}`}
+                            onClick={closeDrawer}
+                            className="font-bold text-xs sm:text-sm text-dark hover:text-primary transition-colors line-clamp-2 leading-snug"
+                          >
+                            {item.name}
+                          </Link>
+                          {item.selectedColor && (
+                            <span className="inline-flex items-center gap-1 text-[11px] text-gray-500 font-medium mt-0.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                              <span>Color: <strong className="text-gray-700">{item.selectedColor}</strong></span>
+                            </span>
+                          )}
+                        </div>
                         <button
-                          onClick={() => removeFromCart(item._id)}
+                          onClick={() => removeFromCart(itemKey)}
                           className="text-gray-400 hover:text-red-500 transition-colors p-1"
                           title="Remove item"
                         >
@@ -250,7 +259,7 @@ export default function CartDrawer() {
                         {/* Quantity adjuster */}
                         <div className="flex items-center border border-gray-200 rounded-lg bg-white overflow-hidden shadow-xs">
                           <button
-                            onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                            onClick={() => updateQuantity(itemKey, item.quantity - 1)}
                             className="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
                             aria-label="Decrease quantity"
                           >
@@ -260,7 +269,7 @@ export default function CartDrawer() {
                             {item.quantity}
                           </span>
                           <button
-                            onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                            onClick={() => updateQuantity(itemKey, item.quantity + 1)}
                             className="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
                             aria-label="Increase quantity"
                           >
@@ -290,7 +299,7 @@ export default function CartDrawer() {
           {/* Footer Area with Promo Code & Checkout */}
           {items.length > 0 && (
             <div className="p-4 sm:p-5 border-t border-gray-150 bg-white space-y-4">
-              
+
               {/* Promo Code Accordion/Bar */}
               <div className="space-y-2">
                 {coupon ? (

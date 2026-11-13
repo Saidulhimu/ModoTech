@@ -38,7 +38,9 @@ export default function Home() {
       <TrustBadges />
 
       {/* 3. Top Tech Brands Monochromatic Infinite Marquee */}
+
       <BrandMarquee />
+
 
       {/* 4. Category Grid */}
       <CategoryGrid />

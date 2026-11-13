@@ -89,6 +89,30 @@ export const orderService = {
       return { success: true };
     }
   },
+
+  async searchOrderByQuery(query) {
+    if (!query) return null;
+    const cleanQ = String(query).trim().toLowerCase();
+    
+    // Direct ID lookup first
+    const directOrder = await this.getOrderById(cleanQ);
+    if (directOrder) return directOrder;
+
+    // Search stored & server orders by phone number or ID substring
+    const allOrders = await this.getAllOrders();
+    const cleanDigits = cleanQ.replace(/\D/g, '');
+
+    const found = allOrders.find((o) => {
+      const orderPhone = (o.shippingAddress?.phone || o.phone || '').replace(/\D/g, '');
+      if (cleanDigits.length >= 7 && orderPhone.length >= 7 && (orderPhone.includes(cleanDigits) || cleanDigits.includes(orderPhone))) {
+        return true;
+      }
+      if (String(o._id).toLowerCase().includes(cleanQ)) return true;
+      return false;
+    });
+
+    return found || null;
+  },
 };
 
 export default orderService;

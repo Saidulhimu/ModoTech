@@ -125,6 +125,7 @@ export default function ProductDetail() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [selectedColor, setSelectedColor] = useState(null);
   const [activeImage, setActiveImage] = useState(0);
   const [activeTab, setActiveTab] = useState('specs'); // 'specs' | 'reviews' | 'warranty'
 
@@ -145,7 +146,14 @@ export default function ProductDetail() {
     const fetchProduct = async () => {
       try {
         const item = await productService.getProductById(id);
-        if (isMounted) setProduct(item);
+        if (isMounted) {
+          setProduct(item);
+          if (item?.colors && Array.isArray(item.colors) && item.colors.length > 0) {
+            setSelectedColor(item.colors[0]);
+          } else {
+            setSelectedColor(null);
+          }
+        }
       } catch {
         if (isMounted) setProduct(null);
       } finally {
@@ -219,15 +227,16 @@ export default function ProductDetail() {
   const wishlisted = isWishlisted(product._id);
 
   const handleAddToCart = () => {
-    addToCart(product, quantity);
-    toast.success(`${product.name} added to cart!`, {
+    addToCart(product, quantity, true, selectedColor?.name);
+    const colorMsg = selectedColor?.name ? ` (${selectedColor.name})` : '';
+    toast.success(`${product.name}${colorMsg} added to cart!`, {
       style: { borderRadius: '12px' },
     });
   };
 
   const handleBuyNow = () => {
     if (!product || product.stock === 0) return;
-    addToCart(product, quantity, false);
+    addToCart(product, quantity, false, selectedColor?.name);
     navigate('/checkout');
   };
 
@@ -394,6 +403,44 @@ export default function ProductDetail() {
                   {product.stock > 0 ? `In Stock Ready to Dispatch (${product.stock} units left)` : 'Out of Stock'}
                 </span>
               </div>
+
+              {/* Color / Variant Selector (for products with color options) */}
+              {product.colors && Array.isArray(product.colors) && product.colors.length > 0 && (
+                <div className="mb-6 p-4 rounded-2xl bg-gray-50/80 border border-gray-150">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs sm:text-sm font-bold text-gray-800">
+                      Color Variant: <span className="text-primary font-black ml-1">{selectedColor?.name || product.colors[0]?.name}</span>
+                    </span>
+                    <span className="text-[11px] font-semibold text-gray-500 bg-white px-2.5 py-0.5 rounded-full border border-gray-200">
+                      {product.colors.length} shades
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2.5">
+                    {product.colors.map((c) => {
+                      const isSelected = (selectedColor?.name || product.colors[0]?.name) === c.name;
+                      return (
+                        <button
+                          key={c.name}
+                          type="button"
+                          onClick={() => setSelectedColor(c)}
+                          className={`flex items-center gap-2.5 px-3.5 py-2 rounded-xl border text-xs font-bold transition-all ${
+                            isSelected
+                              ? 'border-primary bg-white text-primary shadow-sm ring-2 ring-primary/20 scale-[1.02]'
+                              : 'border-gray-200 bg-white/70 text-gray-700 hover:border-gray-300 hover:bg-white'
+                          }`}
+                        >
+                          <span
+                            className="w-4 h-4 rounded-full border border-black/15 shrink-0 shadow-inner"
+                            style={{ backgroundColor: c.hex || '#18181B' }}
+                          />
+                          <span>{c.name}</span>
+                          {isSelected && <FiCheckCircle size={13} className="text-primary ml-0.5" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Quantity Selector */}
               <div className="flex items-center gap-4 mb-6">

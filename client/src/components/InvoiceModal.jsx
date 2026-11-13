@@ -116,6 +116,12 @@ export default function InvoiceModal({ order, onClose }) {
               <p className="text-gray-600 mt-0.5">
                 <strong>Payment Method:</strong> {order.paymentMethod || 'Cash on Delivery'}
               </p>
+              {order.paymentDetails?.transactionId && (
+                <p className="text-emerald-700 font-bold mt-0.5">
+                  <strong>TrxID:</strong> {order.paymentDetails.transactionId}
+                  {order.paymentDetails.senderNumber ? ` (${order.paymentDetails.senderNumber})` : ''}
+                </p>
+              )}
               <p className="text-gray-600 mt-0.5">
                 <strong>Fulfillment:</strong> {order.orderStatus || 'Pending'}
               </p>
@@ -148,6 +154,11 @@ export default function InvoiceModal({ order, onClose }) {
                     <td className="py-3 text-gray-400 font-mono">{idx + 1}</td>
                     <td className="py-3 pr-2">
                       <div className="font-bold text-dark text-xs sm:text-sm">{item.name}</div>
+                      {item.selectedColor && (
+                        <span className="text-[10px] text-gray-600 block">
+                          Color: <strong className="text-gray-900">{item.selectedColor}</strong>
+                        </span>
+                      )}
                       <span className="text-[10px] text-gray-400">1 Year Official Brand Warranty</span>
                     </td>
                     <td className="py-3 text-center font-bold text-gray-700">{item.quantity}</td>

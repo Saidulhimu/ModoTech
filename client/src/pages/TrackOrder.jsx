@@ -11,7 +11,7 @@ import {
   FiMapPin,
 } from 'react-icons/fi';
 import { formatBDT } from '../lib/format';
-import api from '../lib/axios';
+import { orderService } from '../services/orderService';
 import InvoiceModal from '../components/InvoiceModal';
 
 const steps = [
@@ -37,8 +37,8 @@ export default function TrackOrder() {
     setLoading(true);
     setSearched(true);
     try {
-      const { data } = await api.get(`/orders/${idToSearch}`);
-      setOrder(data);
+      const found = await orderService.searchOrderByQuery(idToSearch);
+      setOrder(found);
     } catch {
       setOrder(null);
     } finally {
@@ -111,7 +111,7 @@ export default function TrackOrder() {
         <div className="mb-8">
           <h1 className="text-3xl sm:text-4xl font-black text-dark tracking-tight">Track Your Order</h1>
           <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            Enter your Order ID to track real-time fulfillment and download official cash memos.
+            Enter your <strong>Order ID</strong> or <strong>11-digit Phone Number</strong> to check real-time dispatch progress.
           </p>
         </div>
 
@@ -119,7 +119,7 @@ export default function TrackOrder() {
         <form onSubmit={handleSubmit} className="flex gap-2 sm:gap-3 mb-10">
           <input
             type="text"
-            placeholder="Paste your Order ID (e.g. ord_173...)"
+            placeholder="Enter Order ID (e.g. ord_...) or Phone Number (017...)"
             value={orderId}
             onChange={(e) => setOrderId(e.target.value)}
             required
@@ -187,8 +187,8 @@ export default function TrackOrder() {
                     <div key={s.key} className="flex flex-col items-center text-center relative z-10">
                       <div
                         className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${isCompleted
-                            ? 'bg-primary text-white shadow-lg shadow-primary/30 ring-4 ring-primary/10'
-                            : 'bg-white border-2 border-gray-200 text-gray-400'
+                          ? 'bg-primary text-white shadow-lg shadow-primary/30 ring-4 ring-primary/10'
+                          : 'bg-white border-2 border-gray-200 text-gray-400'
                           }`}
                       >
                         {s.icon}

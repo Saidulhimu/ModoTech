@@ -201,11 +201,10 @@ export default function Profile() {
                   {user?.name || 'Customer'}
                 </h1>
                 <span
-                  className={`text-[11px] font-extrabold px-3 py-1 rounded-full uppercase inline-flex items-center gap-1.5 ${
-                    user?.role === 'admin'
+                  className={`text-[11px] font-extrabold px-3 py-1 rounded-full uppercase inline-flex items-center gap-1.5 ${user?.role === 'admin'
                       ? 'bg-purple-100 text-purple-700'
                       : 'bg-emerald-100 text-emerald-700'
-                  }`}
+                    }`}
                 >
                   {user?.role === 'admin' ? <FiShield size={12} /> : <FiCheckCircle size={12} />}
                   <span>{user?.role === 'admin' ? 'Administrator' : 'Verified Member'}</span>
