@@ -34,11 +34,11 @@ export default function Home() {
       {/* 1. Hero Showcase Carousel */}
       <HeroSlider />
 
-      {/* 2. Top Tech Brands Monochromatic Marquee */}
-      <BrandMarquee />
-
-      {/* 3. Floating Trust Badges */}
+      {/* 2. Floating Trust Badges & Customer Guarantees */}
       <TrustBadges />
+
+      {/* 3. Top Tech Brands Monochromatic Infinite Marquee */}
+      <BrandMarquee />
 
       {/* 4. Category Grid */}
       <CategoryGrid />
