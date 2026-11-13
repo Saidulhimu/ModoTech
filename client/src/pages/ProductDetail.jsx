@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   FiShoppingCart,
   FiHeart,
@@ -16,12 +16,13 @@ import {
   FiPackage,
   FiAward,
   FiShare2,
+  FiArrowRight,
 } from 'react-icons/fi';
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
 import { useAuthStore } from '../store/authStore';
 import api from '../lib/axios';
-import { demoProducts } from '../data/demoProducts';
+import productService, { getAllAvailableProducts } from '../services/productService';
 import { formatBDT } from '../lib/format';
 import ProductCard from '../components/ProductCard';
 import toast from 'react-hot-toast';
@@ -120,6 +121,7 @@ const INITIAL_REVIEWS = [
 
 export default function ProductDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -139,18 +141,22 @@ export default function ProductDetail() {
   const { user } = useAuthStore();
 
   useEffect(() => {
+    let isMounted = true;
     const fetchProduct = async () => {
       try {
-        const { data } = await api.get(`/products/${id}`);
-        setProduct(data || demoProducts.find((p) => p._id === id) || null);
+        const item = await productService.getProductById(id);
+        if (isMounted) setProduct(item);
       } catch {
-        setProduct(demoProducts.find((p) => p._id === id) || null);
+        if (isMounted) setProduct(null);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
         window.scrollTo(0, 0);
       }
     };
     fetchProduct();
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
   // Pre-fill user name if logged in
@@ -163,14 +169,15 @@ export default function ProductDetail() {
   // Related products query (same category or top picks, excluding current product)
   const relatedProducts = useMemo(() => {
     if (!product) return [];
-    const sameCategory = demoProducts.filter(
-      (p) => p._id !== product._id && p.category === product.category
+    const all = getAllAvailableProducts();
+    const sameCategory = all.filter(
+      (p) => String(p._id) !== String(product._id) && p.category === product.category
     );
     if (sameCategory.length >= 4) {
       return sameCategory.slice(0, 4);
     }
-    const otherProducts = demoProducts.filter(
-      (p) => p._id !== product._id && p.category !== product.category
+    const otherProducts = all.filter(
+      (p) => String(p._id) !== String(product._id) && p.category !== product.category
     );
     return [...sameCategory, ...otherProducts].slice(0, 4);
   }, [product]);
@@ -198,7 +205,7 @@ export default function ProductDetail() {
   if (!product) {
     return (
       <div className="pt-28 pb-20 min-h-[60vh] flex flex-col items-center justify-center text-center">
-        <p className="text-5xl mb-4">😕</p>
+        <FiPackage size={48} className="text-gray-300 mx-auto mb-4" />
         <h2 className="text-2xl font-bold mb-4">Product not found</h2>
         <Link to="/shop" className="btn-primary">Back to Shop</Link>
       </div>
@@ -214,9 +221,14 @@ export default function ProductDetail() {
   const handleAddToCart = () => {
     addToCart(product, quantity);
     toast.success(`${product.name} added to cart!`, {
-      icon: '🛒',
       style: { borderRadius: '12px' },
     });
+  };
+
+  const handleBuyNow = () => {
+    if (!product || product.stock === 0) return;
+    addToCart(product, quantity, false);
+    navigate('/checkout');
   };
 
   const handleShare = () => {
@@ -228,7 +240,9 @@ export default function ProductDetail() {
       }).catch(() => { });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      toast.success('Product link copied to clipboard!', { icon: '🔗' });
+      toast.success('Product link copied to clipboard!', {
+        style: { borderRadius: '12px' },
+      });
     }
   };
 
@@ -401,8 +415,8 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {/* Add to Cart & Wishlist Actions */}
-              <div className="flex gap-3 mb-8">
+              {/* Add to Cart, Buy Now & Wishlist Actions */}
+              <div className="flex flex-col sm:flex-row gap-3 mb-8">
                 <button
                   onClick={handleAddToCart}
                   disabled={product.stock === 0}
@@ -411,8 +425,15 @@ export default function ProductDetail() {
                   <FiShoppingCart size={17} /> Add to Cart
                 </button>
                 <button
+                  onClick={handleBuyNow}
+                  disabled={product.stock === 0}
+                  className="bg-dark hover:bg-neutral-800 text-white font-bold text-sm px-6 py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.99] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FiArrowRight size={16} /> Buy Now
+                </button>
+                <button
                   onClick={() => toggleWishlist(product)}
-                  className={`w-13 h-13 px-4 rounded-2xl border-2 transition-all flex items-center justify-center ${wishlisted
+                  className={`w-full sm:w-13 h-13 px-4 rounded-2xl border-2 transition-all flex items-center justify-center ${wishlisted
                       ? 'bg-primary border-primary text-white shadow-md shadow-primary/30'
                       : 'border-gray-200 text-gray-600 hover:border-primary hover:text-primary bg-white'
                     }`}
